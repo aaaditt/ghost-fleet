@@ -21,16 +21,49 @@
 
     <main class="layout">
         <section class="chart" aria-label="Map of vessel positions">
-            <div id="map"></div>
-            <div class="key" aria-hidden="true">
-                <span><i class="dot dot-high"></i>Risk 70+</span>
-                <span><i class="dot dot-low"></i>Below 70</span>
-                <span class="key-track"><i class="ring"></i>Loitering at sea</span>
-                <span class="key-track"><i class="square"></i>Port call</span>
+            <div class="chart-canvas">
+                <div id="map"></div>
+                <button class="replay-toggle" id="replay-open" type="button" aria-controls="replay" aria-expanded="false" hidden>
+                    Historical evidence replay
+                </button>
+                <div class="key" role="group" aria-label="Map key">
+                    <span class="key-mode" id="key-mode">Latest positions</span>
+                    <span class="key-fleet"><i class="dot dot-high"></i>Risk 70+</span>
+                    <span class="key-fleet"><i class="dot dot-low"></i>Below 70</span>
+                    <span class="key-events" id="key-events"></span>
+                </div>
             </div>
+
+            <section class="replay" id="replay" aria-labelledby="replay-title" hidden>
+                <div class="replay-head">
+                    <h2 id="replay-title">Historical evidence replay</h2>
+                    <button class="replay-exit" id="replay-exit" type="button">Back to latest positions</button>
+                </div>
+                <div class="replay-status" id="replay-status" aria-live="polite" aria-atomic="true">
+                    <p class="replay-period" id="replay-period"></p>
+                    <p class="replay-counts" id="replay-counts"></p>
+                </div>
+                <div class="replay-controls">
+                    <button type="button" id="replay-prev" aria-label="Previous month">&#8249;</button>
+                    <button type="button" id="replay-play" class="replay-play" aria-pressed="false">Play</button>
+                    <button type="button" id="replay-next" aria-label="Next month">&#8250;</button>
+                    <div class="replay-track">
+                        <input type="range" id="replay-slider" min="0" max="0" step="1" value="0" aria-label="Replay month">
+                        <div class="replay-scale" aria-hidden="true"><span id="replay-first"></span><span id="replay-last"></span></div>
+                    </div>
+                    <button type="button" id="replay-latest" class="replay-latest">Latest month</button>
+                </div>
+                <p class="replay-note">
+                    Sparse recorded evidence, not a continuous track. Each mark is one dated event with a position,
+                    shown in every month its recorded span overlaps. Positions are never joined or interpolated.
+                    The snapshot keeps each vessel's 30 most recent events, so earlier months show fewer
+                    observations than occurred and the counts are not a trend.
+                    <a href="#vessel-list" id="replay-skip">List the vessels in this month</a>
+                </p>
+            </section>
         </section>
 
-        <aside class="rail" id="rail">
+        <aside class="rail" id="rail" aria-busy="true">
             <!-- Monitor view -->
             <div id="view-monitor">
                 <p class="lede" id="headline">Reading the snapshot…</p>
@@ -61,7 +94,7 @@
                 </section>
 
                 <section class="vessels">
-                    <h2>Vessels</h2>
+                    <h2 id="vessels-title">Vessels</h2>
                     <label class="search">
                         <span class="visually-hidden">Search vessels</span>
                         <input type="search" id="vessel-search" placeholder="Name, former name or IMO">
@@ -73,16 +106,38 @@
             <!-- Dossier view -->
             <article id="view-dossier" hidden>
                 <button class="back" id="btn-back" type="button">Back to overview</button>
-                <h2 class="vessel-name" id="d-name"></h2>
+                <h2 class="vessel-name" id="d-name" tabindex="-1"></h2>
                 <p class="vessel-now" id="d-now"></p>
 
                 <div class="score">
                     <div class="score-number" id="d-score"></div>
                     <div class="score-body">
+                        <p class="score-label">Screening score, out of 100</p>
                         <div class="score-bar" id="d-bar"></div>
-                        <ul class="score-parts" id="d-parts"></ul>
+                        <p class="score-sum" id="d-sum"></p>
                     </div>
                 </div>
+
+                <section class="matrix" aria-labelledby="matrix-title">
+                    <h3 id="matrix-title">Evidence matrix</h3>
+                    <table class="evidence" id="d-matrix">
+                        <caption class="visually-hidden">What the snapshot records for this vessel, the status of each item, and the points it adds to the score</caption>
+                        <thead>
+                            <tr><th scope="col">Evidence</th><th scope="col">Status</th><th scope="col" class="pts">Points</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr><th scope="row" colspan="2">Screening score</th><td class="pts" id="d-total"></td></tr>
+                        </tfoot>
+                    </table>
+                    <dl class="status-key">
+                        <div><dt><span class="status st-observed">Observed</span></dt><dd>recorded directly in a source</dd></div>
+                        <div><dt><span class="status st-derived">Derived from AIS</span></dt><dd>inferred by Global Fishing Watch from ship-position broadcasts</dd></div>
+                        <div><dt><span class="status st-not-observed">Not observed</span></dt><dd>none recorded in the window, which is not proof of absence</dd></div>
+                        <div><dt><span class="status st-unknown">Unavailable / unknown</span></dt><dd>the public data cannot answer this</dd></div>
+                    </dl>
+                    <p class="sources" id="d-sources"></p>
+                </section>
 
                 <section>
                     <h3>Identities used</h3>
@@ -99,8 +154,6 @@
                     <p id="d-size"></p>
                     <p class="footnote">Cargo state: <span id="d-cargo"></span></p>
                 </section>
-
-                <p class="sources" id="d-sources"></p>
             </article>
 
             <footer class="disclaimer">
@@ -111,6 +164,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+    <script src="evidence.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

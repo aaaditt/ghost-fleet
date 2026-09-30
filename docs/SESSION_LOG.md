@@ -318,3 +318,65 @@ the removed unsupported benchmark claims; `python -m pytest -q` → 20 passed.
 **Remaining:** If the owner authorizes implementation after the hackathon, run
 only Stage 1 of the pilot first: a bounded, historical GFW SAR
 matched/unmatched study in one approved corridor.
+
+## 2026-09-30 — Evidence matrix, historical evidence replay, UI polish (v0.5.0)
+
+**Objective:** Make each vessel's evidence transparent, add a replay of the
+dated events already in the snapshot, and polish the UI without changing the
+nautical-chart identity, the static architecture or the data sources.
+
+**Data inspected first:** the snapshot has 7,032 events: 4,119 loitering,
+2,903 port calls and 10 AIS gaps. All are dated and positioned. There are no
+encounter events (`encounters` is 0 for all 300 vessels). Every gap event
+carries GFW's `intentionalDisabling: true`. The pipeline keeps each vessel's
+30 most recent events, and 192 vessels hit that cap, so monthly event counts
+rise over the year as an artefact of trimming. 24 vessels have no positioned
+event. All 300 vessels have `cargo_status` UNKNOWN, and every `risk_score`
+equals the sum of its breakdown.
+
+**Decisions:**
+- No pipeline or schema change was needed.
+- The matrix copies points from `risk_breakdown` and never re-scores. Loitering
+  and encounters share the `meetings` component, shown as one merged points
+  cell.
+- Replay observations are grouped by overlap: an event appears in every
+  calendar month its recorded span overlaps, clipped to the snapshot window.
+  This is honest for long loitering and port stays, and it handles events
+  that began before the window. The tooltips and counts separate events that
+  "began earlier". The window-edge months are marked partial.
+- The replay does not use "live", does not draw lines, and does not
+  interpolate. It has no activity chart, because the trimming artefact would
+  read as a trend. The visible note says the counts are not a trend.
+- The replay legend shows only the kinds present in the data, so there is no
+  encounter symbol today. Encounters keep "apparent … (possible)" wording in
+  code for future snapshots.
+- Keyboard and mobile access to replay observations goes through the vessel
+  list, which filters to the selected month, rather than hundreds of
+  focusable map markers.
+
+**Changed:** `dashboard/evidence.js` (new), `dashboard/app.js`,
+`dashboard/index.html`, `dashboard/style.css`,
+`tests/test_evidence_frontend.py` (new), `video/record_scenes.py` (selector),
+`README.md`, `CHANGELOG.md`, `VERSION`, `docs/HANDOVER.md`, this log.
+
+**Validation:**
+- `python -m pytest -q` → 39 passed (20 existing + 19 new; the new tests run
+  `evidence.js` in Node 24).
+- A Playwright script against `python -m http.server` passed 136/136 checks
+  in three configurations: desktop 1440×900, mobile 390×844, and reduced
+  motion at 1280×800. The checks covered the latest-position map, search by
+  former name, the dossier matrix (WOLF 40 + 30 + 5 = 75, cargo unknown,
+  encounters not observed, two source links), dossier event click, Escape
+  with focus return, and keyboard replay entry (slider focus, Arrow/Home
+  keys). They also covered prev/next and their disabled ends, play advancing,
+  pause holding, "Latest month", opening a dossier from the replay list and
+  from a map marker, a forced empty month, exit restoring the fleet map, deep
+  links, hashchange, a vessel without positioned events, the visible focus
+  outline, animations disabled under reduced motion, no horizontal overflow,
+  and zero console errors.
+- Screenshots of desktop and 390 px views were reviewed by eye. That review
+  found and fixed a grid-placement bug that put vessel names on the right.
+
+**Remaining:** Deploy (`vercel deploy --prod --cwd dashboard`). README
+screenshots, `docs/demo.gif` and the pitch video still show the pre-0.5.0
+dossier.

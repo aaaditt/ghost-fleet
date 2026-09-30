@@ -6,8 +6,8 @@
 A map-first monitor of the sanctioned shadow-fleet tankers, built for oil traders from public data.
 
 [![Live demo](https://img.shields.io/badge/live_demo-ghost--fleet.vercel.app-a3165f?style=flat-square)](https://ghost-fleet.vercel.app)
-![Version](https://img.shields.io/badge/version-0.4.1-1c2a35?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-20_passing-2e7d5b?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.5.0-1c2a35?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-39_passing-2e7d5b?style=flat-square)
 ![Data](https://img.shields.io/badge/data-OpenSanctions_%2B_Global_Fishing_Watch-5d707a?style=flat-square)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-1c2a35?style=flat-square)](LICENSE)
 
@@ -75,9 +75,17 @@ switches and 5 for loitering at sea. This summer it idled offshore for up to
 - **Trend headline.** One plain sentence over 12 months of bars, showing
   exactly which months are compared.
 - **Busiest ports.** The export routes appear straight out of the data.
-- **Vessel dossier.** Score breakdown, every identity in order, recent dated
-  activity plotted on the map, size and value ranges, and source links to
-  OpenSanctions and Global Fishing Watch.
+- **Vessel dossier with an evidence matrix.** Each piece of evidence
+  (listing, identity switches, loitering, encounters, AIS gaps, port calls,
+  latest observation, cargo state) is marked *Observed*, *Derived from AIS*,
+  *Not observed* or *Unavailable / unknown*, next to the points it adds to
+  the score. Also: every identity in order, recent dated activity on the map,
+  size and value ranges, and source links to OpenSanctions and Global Fishing
+  Watch.
+- **Historical evidence replay.** Step or play month by month through the
+  dated, positioned events in the snapshot. Each mark is one recorded event,
+  never a route or an interpolated position. The counts are not a trend,
+  because the snapshot keeps each vessel's 30 most recent events.
 - **Search by former name.** Type a name a ship used years ago and find what
   it is called today.
 - **Honest unknowns.** No draft data means cargo state is "unknown", not a

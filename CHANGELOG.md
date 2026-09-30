@@ -3,6 +3,49 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.5.0] - 2026-09-30
+
+### Added
+
+- **Evidence matrix** in the vessel dossier, which replaces the plain score
+  list. Each row covers one kind of evidence: listing, identity/flag changes,
+  offshore loitering, encounters, AIS gaps, port calls, latest observation
+  and cargo state. Rows show a status (*Observed*, *Derived from AIS*, *Not
+  observed*, *Unavailable / unknown*), the source, the scoring rule, and the
+  points copied from the existing score breakdown. A status key explains the
+  four labels. The OpenSanctions source list can be expanded in place.
+- **Historical evidence replay** on the map. A monthly timeline covers the
+  snapshot window, with play/pause, previous/next, a keyboard-operable
+  slider, "Latest month" and "Back to latest positions". Each mark is one
+  dated, positioned snapshot event. It is shown in every month its recorded
+  span overlaps, and it links to that vessel's dossier. The vessel list
+  filters to the selected month. A visible note says the replay is sparse
+  recorded evidence, not a continuous track, and that the counts are not a
+  trend.
+- `dashboard/evidence.js`: DOM-free evidence and replay logic, shared by the
+  browser and the tests.
+- 19 tests (`tests/test_evidence_frontend.py`) that run the real JS in Node.
+  They check that replay observations match an independent derivation from
+  the snapshot, that matrix points equal the stored score and breakdown, that
+  cargo stays unknown, that GFW's gap-intent wording appears only where the
+  source labels a gap, and that the UI has no overclaiming wording.
+
+### Changed
+
+- Score labels: "AIS switched off" is now "AIS gaps", and "Loitering at sea"
+  is now "Loitering and encounters", which matches what the component
+  counts. The score formula is unchanged.
+- AIS-gap events show GFW's "possible intentional disabling" label only where
+  the source sets it. Long durations read in days.
+- Map legend lists only event kinds present in the current view. Clearer map
+  controls, focus, hover, empty and unknown states. Focus returns to the list
+  after closing a dossier. `#imo=` deep links also work on hash change.
+  Reduced-motion users get no transitions or animated map moves.
+- The vessel list now places the name left and the score right explicitly
+  (CSS grid auto-placement had swapped them).
+- `video/record_scenes.py` highlights the new matrix rows instead of the
+  removed `#d-parts` list.
+
 ## [0.4.1] - 2026-09-30
 
 ### Added

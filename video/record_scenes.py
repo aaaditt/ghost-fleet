@@ -301,7 +301,7 @@ async def scene_score(page, rec, at):
     await page.evaluate("vx.ring('.score', 10)")
     for phrase, n in (("Forty points", 1), ("thirty for", 2), ("five for", 3)):
         await at(phrase)
-        await page.evaluate(f"vx.ring('#d-parts li:nth-child({n})', 5)")
+        await page.evaluate(f"vx.ring('#d-matrix tbody tr:nth-child({n})', 5)")
     await at("The map shows")
     await page.evaluate("vx.ring(null); map.flyTo([25.2, 56.9], 7, {duration: 3.2})")
     await at("up to two weeks")
