@@ -7,7 +7,12 @@
    replayIndex(): the Historical evidence replay. Each observation is one
    dated, positioned event from the snapshot, listed under every calendar month
    its recorded time span overlaps (clipped to the snapshot window). Nothing is
-   interpolated and no route is implied. */
+   interpolated and no route is implied. Radar detections from sar.json
+   (GFW Sentinel-1 detections matched to the vessel's IMO) are added as their
+   own kind, one per detection day.
+
+   Model outputs (our detector and matcher) carry the "Model estimate" status
+   and never add points to the screening score. */
 
 (function (root, factory) {
     const api = factory();
@@ -20,6 +25,7 @@
         DERIVED: { key: "derived", label: "Derived from AIS" },
         NOT_OBSERVED: { key: "not-observed", label: "Not observed" },
         UNKNOWN: { key: "unknown", label: "Unavailable / unknown" },
+        MODEL: { key: "model", label: "Model estimate" },
     };
 
     // Map styling and wording per event kind. Encounters are included so the
@@ -29,6 +35,7 @@
         loitering: { label: "Loitering offshore", one: "loitering event", plural: "loitering" },
         gap: { label: "AIS gap", one: "AIS gap", plural: "AIS gaps" },
         encounter: { label: "Apparent encounter (possible)", one: "apparent encounter", plural: "apparent encounters" },
+        sar: { label: "Radar detection", one: "radar detection", plural: "radar detections" },
     };
 
     // ── Formatting ──────────────────────────────────────────
@@ -74,6 +81,7 @@
                 (e.intentional === true ? " (GFW label: possible intentional disabling)" : "");
         }
         if (e.kind === "encounter") return `Apparent encounter with ${titleCase(e.partner || "another vessel")} (possible)`;
+        if (e.kind === "sar") return "Radar detection matched to this ship's AIS (GFW, Sentinel-1)";
         return e.kind;
     }
 
@@ -83,7 +91,7 @@
 
     // ── Evidence Matrix ─────────────────────────────────────
 
-    function evidenceRows(v, window) {
+    function evidenceRows(v, window, sar) {
         const b = v.risk_breakdown || {};
         const events = v.events || [];
         const lists = String(v.sanction_programs || "").split(";").filter(Boolean);
@@ -166,6 +174,8 @@
             rule: "5 per gap, up to 15",
         });
 
+        rows.push(...radarRows(sar && sar.vessels ? sar.vessels[v.imo] : null, sar));
+
         const nPorts = v.port_visits || 0;
         rows.push({
             key: "ports",
@@ -210,6 +220,59 @@
         return { rows, total, matchesScore: total === v.risk_score };
     }
 
+    function radarRows(r, sar) {
+        const src = "Sentinel-1 via Global Fishing Watch";
+        if (!sar) return [];
+        if (!r || !r.studied) {
+            return [{
+                key: "radar", label: "Radar (satellite) detections", status: STATUS.UNKNOWN,
+                detail: "Outside the radar corridors studied, so no radar evidence was collected for this vessel.",
+                source: src, points: null,
+            }];
+        }
+        const rows = [];
+        const d = r.radar;
+        rows.push({
+            key: "radar", label: "Radar (satellite) detections",
+            status: d.detections ? STATUS.OBSERVED : STATUS.NOT_OBSERVED,
+            detail: d.detections
+                ? `Global Fishing Watch matched ${plural(d.detections, "Sentinel-1 radar detection")} on ${plural(d.days, "day")} to this ship's AIS, ${fmtDate(d.first)} – ${fmtDate(d.last)}. A radar detection shows a hull was physically there.`
+                : "No radar detection matched to this ship in the studied corridors. Radar images each area only every few days, so this is not proof it was absent.",
+            source: src, points: null,
+        });
+        const m = r.our_match;
+        if (m) {
+            const agree = m.gfw_agrees === true ? " Global Fishing Watch's own match agrees."
+                : m.gfw_agrees === false ? " Global Fishing Watch matched a different position that day."
+                : " Global Fishing Watch has no match to compare that day.";
+            rows.push({
+                key: "our_match", label: "Our radar image match",
+                status: STATUS.MODEL,
+                detail: `Our detector found a target ${m.offset_m.toLocaleString("en-GB")} m from where AIS placed the ship loitering, ${fmtDate(m.date)} ${m.time} UTC. Match probability ${m.posterior.toFixed(2)}.${agree}`,
+                source: "Our CNN detector and matcher (see Models)", points: null, image: m.image,
+                caption: `Sentinel-1 radar, ${fmtDate(m.date)} ${m.time} UTC. Ring: the target matched to this ship.`,
+            });
+            if (r.nearby && r.nearby.unmatched_targets) {
+                rows.push({
+                    key: "nearby", label: "Other radar targets nearby",
+                    status: STATUS.OBSERVED,
+                    detail: `${plural(r.nearby.unmatched_targets, "radar target")} within ${r.nearby.radius_km} km on ${fmtDate(r.nearby.date)} had no AIS match. An analyst lead: an unmatched target may be a vessel not broadcasting, a small craft, or a false detection.`,
+                    source: src, points: null,
+                });
+            }
+        }
+        const sbs = (r.side_by_side || []).filter((x) => x.label === "side_by_side");
+        if (sbs.length) {
+            rows.push({
+                key: "side_by_side", label: "Possible side-by-side activity",
+                status: STATUS.MODEL,
+                detail: `${plural(sbs.length, "radar image")} (first ${fmtDate(sbs[0].date)}) show a second hull within ${Math.round(Math.min(...sbs.map((x) => x.sep_m)))} m, flagged by our detector and confirmed on review. Possible activity only: it does not show that cargo moved.`,
+                source: "Our detector, image reviewed", points: null,
+            });
+        }
+        return rows;
+    }
+
     // ── Historical evidence replay ──────────────────────────
 
     function monthKey(iso) {
@@ -223,7 +286,7 @@
         return `${y}-${String(m).padStart(2, "0")}`;
     }
 
-    function replayIndex(vessels, window) {
+    function replayIndex(vessels, window, sar) {
         const lo = window.start;                 // "YYYY-MM-DD"
         const hi = window.end + "T23:59";
         const byMonth = new Map();
@@ -245,6 +308,20 @@
                 }
                 if (!first || monthKey(from) < first) first = monthKey(from);
                 if (!last || monthKey(to) > last) last = monthKey(to);
+            });
+        }
+
+        // Radar detections: one observation per matched detection day.
+        const sarV = sar && sar.vessels ? sar.vessels : {};
+        for (const v of vessels) {
+            const pts = sarV[v.imo] && sarV[v.imo].radar ? sarV[v.imo].radar.points : [];
+            pts.forEach(([date, lat, lon], index) => {
+                if (date < lo || date > window.end) return;
+                const ym = monthKey(date);
+                if (!byMonth.has(ym)) byMonth.set(ym, []);
+                byMonth.get(ym).push({ imo: v.imo, index, kind: "sar", lat, lon, start: date, end: date, began: true, radar: true });
+                if (!first || ym < first) first = ym;
+                if (!last || ym > last) last = ym;
             });
         }
 

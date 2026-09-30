@@ -63,6 +63,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 }
 
 .snapshot { margin: 0; color: var(--sounding); font-size: 13px; }
+.mast-nav { margin-left: auto; display: flex; gap: 16px; font-size: 13px; font-weight: 600; }
+.mast-nav a { text-decoration: none; }
+.mast-nav a:hover { text-decoration: underline; }
 
 /* Layout */
 
@@ -140,6 +143,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 .square { background: var(--ink); width: 8px; height: 8px; }
 .diamond { width: 8px; height: 8px; background: var(--paper); border: 1.5px solid var(--magenta); transform: rotate(45deg); }
 .event-icon { display: flex; align-items: center; justify-content: center; }
+.cross { position: relative; width: 12px; height: 12px; }
+.cross::before, .cross::after { content: ""; position: absolute; left: 5px; top: 0; width: 2px; height: 12px; background: var(--ink); box-shadow: 0 0 0 1px var(--paper); }
+.cross::after { transform: rotate(90deg); }
 
 /* Historical evidence replay: a strip docked under the map */
 
@@ -358,6 +364,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 .ev-label { display: block; font-weight: 600; }
 .ev-detail { display: block; margin-top: 2px; }
 .ev-source { display: block; margin-top: 3px; font-size: 11px; color: var(--sounding); }
+.ev-figure { margin: 8px 0 2px; }
+.ev-figure img { display: block; width: 100%; max-width: 288px; height: auto; background: var(--ink); }
+.ev-figure figcaption { margin-top: 4px; font-size: 11px; color: var(--sounding); }
 .ev-lists summary { margin-top: 4px; font-size: 12px; cursor: pointer; color: var(--sounding); }
 .ev-lists summary:hover { color: var(--magenta); }
 .ev-lists ul { margin: 4px 0 0; padding-left: 16px; font-size: 11px; overflow-wrap: anywhere; }
@@ -374,6 +383,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .st-observed { background: var(--ink); color: var(--paper); }
 .st-derived { background: var(--paper); color: var(--ink); }
 .st-not-observed { color: var(--sounding); border: 1px dashed var(--sounding); }
+.st-model { color: var(--ink); background: var(--paper); border: 1px dotted var(--ink); font-style: italic; }
 .st-unknown {
     color: var(--sounding);
     border-color: var(--rule);

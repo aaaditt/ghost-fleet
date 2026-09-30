@@ -1,0 +1,14 @@
+# SAR + ML research code in ml/ (not needed for the pipeline or the dashboard).
+# Install PyTorch separately for your GPU, e.g.
+#   python -m pip install torch --index-url https://download.pytorch.org/whl/cu121
+# Built and tested with torch 2.5.1+cu121 on a 4 GB GTX 1650.
+-r requirements.txt
+numpy>=2.0,<3
+scipy>=1.13,<2
+scikit-learn>=1.5,<2
+rasterio>=1.4,<2
+pystac>=1.10,<2
+pystac-client>=0.8,<1
+planetary-computer>=1.0,<2
+shapely>=2.0,<3
+pillow>=9.4

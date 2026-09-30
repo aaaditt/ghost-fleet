@@ -53,7 +53,15 @@ def run(pw, width, height, reduced, tag):
     page.click('#vessel-list button[data-imo="9240885"]')
     page.wait_for_selector("#view-dossier:not([hidden])")
     rows = page.locator("#d-matrix tbody tr")
-    check(f"{tag}: matrix has 8 rows", rows.count() == 8, rows.count())
+    check(f"{tag}: matrix has 8 rows plus radar rows", rows.count() >= 8, rows.count())
+    radar = page.inner_text("#d-matrix tr.row-radar") if page.locator("#d-matrix tr.row-radar").count() else ""
+    check(f"{tag}: radar row observed", "Observed" in radar and "radar detection" in radar, radar)
+    match = page.inner_text("#d-matrix tr.row-our_match") if page.locator("#d-matrix tr.row-our_match").count() else ""
+    check(f"{tag}: our match is a model estimate", "Model estimate" in match, match)
+    img_ok = page.evaluate("(() => { const i = document.querySelector('#d-matrix .ev-figure img'); if (!i) return false; "
+                           "i.loading = 'eager'; return new Promise(r => { if (i.complete) r(i.naturalWidth > 0); "
+                           "else { i.onload = () => r(true); i.onerror = () => r(false); } }); })()")
+    check(f"{tag}: radar image loads", img_ok)
     check(f"{tag}: matrix total 75", page.inner_text("#d-total").strip() == "75", page.inner_text("#d-total"))
     check(f"{tag}: score 75", page.inner_text("#d-score").strip() == "75")
     cargo = page.inner_text("#d-matrix tr.row-cargo")
@@ -179,6 +187,15 @@ def run(pw, width, height, reduced, tag):
     if reduced:
         anim = page.evaluate("getComputedStyle(document.getElementById('view-monitor')).animationName")
         check(f"{tag}: reduced motion disables animation", anim == "none", anim)
+
+    # Models page renders every figure from sar.json
+    page.goto(URL + "models.html", wait_until="networkidle")
+    page.wait_for_selector("#detector table")
+    body = page.inner_text("#card")
+    check(f"{tag}: models page tables", page.locator(".metrics").count() >= 3)
+    check(f"{tag}: models page states the cargo no-go", "No-go" in body or "may be shown" in body)
+    check(f"{tag}: models page names its reference", "not ground truth" in body)
+    check(f"{tag}: no overflow (models)", not overflow(page))
 
     check(f"{tag}: no console errors", not errors, errors)
     browser.close()

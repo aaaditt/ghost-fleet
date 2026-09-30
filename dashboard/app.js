@@ -6,6 +6,7 @@
 
 const DATA_URL = "data/vessels.json";
 const SIGNAL_URL = "data/signal.json";
+const SAR_URL = "data/sar.json"; // optional: radar evidence (see ml/)
 const HIGH_RISK = 70;
 const HOME = { center: [42, 45], zoom: 3 };
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -36,6 +37,7 @@ const SCORE_PARTS = [
 let vessels = [];
 let byImo = new Map();
 let snapshot = null;
+let sar = null;
 let markers = new Map();
 let fleetLayer = null;
 let trackLayer = null;
@@ -92,13 +94,13 @@ L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Oc
 }).addTo(map);
 
 // Legend swatch and map symbol for each event kind; one source for both.
-const KIND_SWATCH = { port_visit: "square", loitering: "ring", gap: "ring-dashed", encounter: "diamond" };
+const KIND_SWATCH = { port_visit: "square", loitering: "ring", gap: "ring-dashed", encounter: "diamond", sar: "cross" };
 
 function eventMarker(e) {
-    if (e.kind === "port_visit" || e.kind === "encounter") {
+    if (e.kind === "port_visit" || e.kind === "encounter" || e.kind === "sar") {
         const cls = KIND_SWATCH[e.kind];
         return L.marker([e.lat, e.lon], {
-            icon: L.divIcon({ className: "event-icon", html: `<i class="${cls}"></i>`, iconSize: [10, 10] }),
+            icon: L.divIcon({ className: "event-icon", html: `<i class="${cls}"></i>`, iconSize: [12, 12] }),
             keyboard: false,
         });
     }
@@ -113,7 +115,7 @@ function dimMarker(m, dim) {
 }
 
 function setEventKey(kinds) {
-    const order = ["port_visit", "loitering", "gap", "encounter"];
+    const order = ["port_visit", "loitering", "gap", "encounter", "sar"];
     $("key-events").innerHTML = order.filter((k) => kinds.has(k))
         .map((k) => `<span><i class="${KIND_SWATCH[k]}"></i>${esc(GF.KINDS[k].label)}</span>`).join("");
 }
@@ -253,7 +255,7 @@ function drawReplayMarkers(obs) {
     const selected = [];
     for (const o of obs) {
         const v = byImo.get(o.imo);
-        const e = v.events[o.index];
+        const e = o.radar ? { kind: "sar", start: o.start, end: o.end, lat: o.lat, lon: o.lon } : v.events[o.index];
         const range = e.end && e.end.slice(0, 10) !== e.start.slice(0, 10)
             ? `${fmtDate(e.start)} – ${fmtDate(e.end)}` : fmtDate(e.start);
         const m = eventMarker(e)
@@ -406,7 +408,7 @@ function renderScore(v) {
 }
 
 function renderMatrix(v) {
-    const { rows, total, matchesScore } = GF.evidenceRows(v, snapshot.window);
+    const { rows, total, matchesScore } = GF.evidenceRows(v, snapshot.window, sar);
     const cell = (r) => {
         if (r.sharedWith) return "";
         const span = r.span ? ` rowspan="${r.span}"` : "";
@@ -419,6 +421,8 @@ function renderMatrix(v) {
                 <span class="ev-label">${esc(r.label)}</span>
                 <span class="ev-detail">${esc(r.detail)}</span>
                 <span class="ev-source">Source: ${esc(r.source)}${r.rule ? ` · Scoring: ${esc(r.rule)}` : ""}</span>
+                ${r.image ? `<figure class="ev-figure"><img src="${esc(r.image)}" width="288" height="288" loading="lazy"
+                    alt="${esc(r.caption)}"><figcaption>${esc(r.caption)}</figcaption></figure>` : ""}
                 ${r.lists && r.lists.length ? `<details class="ev-lists"><summary>Show the ${r.lists.length} source lists</summary>
                     <ul>${r.lists.map((l) => `<li><code>${esc(l)}</code></li>`).join("")}</ul></details>` : ""}
             </th>
@@ -516,12 +520,13 @@ async function load() {
         if (!vr.ok || !sr.ok) throw new Error(`HTTP ${vr.status}/${sr.status}`);
         snapshot = await vr.json();
         const signal = await sr.json();
+        sar = await fetch(SAR_URL).then((r) => (r.ok ? r.json() : null)).catch(() => null);
         vessels = snapshot.vessels;
         byImo = new Map(vessels.map((v) => [v.imo, v]));
         drawVessels();
         renderMonitor(signal, snapshot);
 
-        replay.index = GF.replayIndex(vessels, snapshot.window);
+        replay.index = GF.replayIndex(vessels, snapshot.window, sar);
         const { months } = replay.index;
         if (months.length) {
             const slider = $("replay-slider");

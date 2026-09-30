@@ -17,6 +17,7 @@
     <header class="masthead">
         <h1 class="wordmark">Ghost Fleet</h1>
         <p class="snapshot" id="snapshot">Loading snapshot…</p>
+        <nav class="mast-nav" aria-label="Pages"><a href="models.html">Models</a><a href="watch.html">Watch the pitch</a></nav>
     </header>
 
     <main class="layout">
@@ -55,7 +56,8 @@
                 </div>
                 <p class="replay-note">
                     Sparse recorded evidence, not a continuous track. Each mark is one dated event with a position,
-                    shown in every month its recorded span overlaps. Positions are never joined or interpolated.
+                    shown in every month its recorded span overlaps. Radar marks are satellite detections that Global Fishing
+                    Watch matched to the ship's AIS. Positions are never joined or interpolated.
                     The snapshot keeps each vessel's 30 most recent events, so earlier months show fewer
                     observations than occurred and the counts are not a trend.
                     <a href="#vessel-list" id="replay-skip">List the vessels in this month</a>
@@ -135,6 +137,7 @@
                         <div><dt><span class="status st-derived">Derived from AIS</span></dt><dd>inferred by Global Fishing Watch from ship-position broadcasts</dd></div>
                         <div><dt><span class="status st-not-observed">Not observed</span></dt><dd>none recorded in the window, which is not proof of absence</dd></div>
                         <div><dt><span class="status st-unknown">Unavailable / unknown</span></dt><dd>the public data cannot answer this</dd></div>
+                        <div><dt><span class="status st-model">Model estimate</span></dt><dd>output of our radar models, with its probability; see <a href="models.html">Models</a></dd></div>
                     </dl>
                     <p class="sources" id="d-sources"></p>
                 </section>
