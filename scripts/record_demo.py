@@ -35,6 +35,15 @@ def record(url: str, video_dir: Path) -> Path:
             rail.evaluate("el => el.scrollBy({top: 110, behavior: 'smooth'})")
             page.wait_for_timeout(450)
         page.wait_for_timeout(1200)
+        rail.evaluate("el => el.scrollBy({top: el.querySelector('#d-matrix tr.row-radar').getBoundingClientRect().top"
+                      " - el.getBoundingClientRect().top - 16, behavior: 'smooth'})")
+        page.wait_for_timeout(3200)                      # radar evidence and WOLF's radar image
+        page.click("#replay-open")                       # historical evidence replay
+        page.wait_for_timeout(1500)
+        page.click("#replay-play")
+        page.wait_for_timeout(6000)                      # a few months of recorded evidence
+        page.click("#replay-exit")
+        page.wait_for_timeout(1500)
         page.click("#btn-back")                          # back to the whole fleet
         page.wait_for_timeout(2200)
         assert page.video is not None

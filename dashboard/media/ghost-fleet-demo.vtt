@@ -137,81 +137,161 @@ a country with no coastline. In September it switched again,
 to Aruba. Seven identities. Seven flags. One ship.
 
 35
-00:01:58.480 --> 00:02:02.450
-Its risk score of seventy-five is not a black box.
+00:01:58.480 --> 00:02:02.410
+Its screening score of seventy-five is not a black box.
 
 36
-00:02:02.480 --> 00:02:04.970
-Forty points for its sanctions listings,
+00:02:02.400 --> 00:02:05.530
+The evidence matrix lists every piece of evidence,
 
 37
-00:02:04.800 --> 00:02:06.890
-thirty for its identity switches,
+00:02:05.360 --> 00:02:08.010
+where it came from, and what it adds.
 
 38
-00:02:06.760 --> 00:02:09.770
-and five for time spent loitering at sea.
+00:02:07.840 --> 00:02:10.330
+Forty points for its sanctions listings,
 
 39
-00:02:09.600 --> 00:02:11.770
-The map shows where that happened.
+00:02:10.160 --> 00:02:12.330
+thirty for its identity switches,
 
 40
-00:02:11.640 --> 00:02:15.450
-This summer it idled offshore for up to two weeks at a time,
+00:02:12.200 --> 00:02:15.050
+and five for time spent loitering at sea.
 
 41
-00:02:15.280 --> 00:02:19.370
-a pattern often seen with floating storage and ship-to-ship transfers.
+00:02:14.880 --> 00:02:17.210
+The map shows where that happened.
 
 42
-00:02:20.440 --> 00:02:23.490
-We're strict about what the data cannot tell us.
+00:02:17.080 --> 00:02:20.810
+This summer it idled offshore for up to two weeks at a time.
 
 43
-00:02:23.480 --> 00:02:26.290
-Public tracking data has no draft readings,
+00:02:21.880 --> 00:02:26.170
+A ship can switch off its tracker. It cannot hide from radar.
 
 44
-00:02:26.120 --> 00:02:30.450
-so we never guess whether a tanker is loaded. We say unknown.
+00:02:26.200 --> 00:02:29.810
+Satellite radar sees the hull itself, day or night,
 
 45
-00:02:30.680 --> 00:02:33.730
-Values are ranges, with their assumptions shown.
+00:02:29.680 --> 00:02:30.890
+through cloud.
 
 46
-00:02:33.880 --> 00:02:37.330
-And every vessel links straight back to its sources.
+00:02:30.920 --> 00:02:36.370
+Global Fishing Watch's radar picked up two hundred and fifty-five of these three hundred tankers,
 
 47
-00:02:38.400 --> 00:02:41.530
-Step back, and it isn't one ship.
+00:02:36.200 --> 00:02:38.010
+eight times for the Wolf.
 
 48
-00:02:41.760 --> 00:02:45.610
-Two hundred and eighty-nine of these three hundred switched identity.
+00:02:38.040 --> 00:02:40.610
+We trained our own detector on those images.
 
 49
-00:02:45.600 --> 00:02:48.570
-Between them, they used eighty-one flags,
+00:02:40.600 --> 00:02:44.370
+On a hundred and forty-seven radar scenes it had never seen,
 
 50
-00:02:48.360 --> 00:02:51.610
-and eleven fly the flag of a landlocked country today.
+00:02:44.200 --> 00:02:48.050
+it found ninety-seven percent of the ships Global Fishing Watch found,
 
 51
-00:02:52.760 --> 00:02:53.650
-Next,
+00:02:47.880 --> 00:02:50.610
+with a third of the false alarms of the classic method.
 
 52
-00:02:53.440 --> 00:02:57.490
-we'll screen all eight hundred and ninety-two listed ships every day,
+00:02:50.920 --> 00:02:53.970
+Here it is finding the Wolf in the Gulf of Oman,
 
 53
-00:02:57.320 --> 00:03:01.090
-and add licensed draft data to turn this signal into barrels.
+00:02:53.840 --> 00:02:55.970
+right where its tracking data placed it.
 
 54
-00:03:01.400 --> 00:03:05.010
+00:02:57.040 --> 00:02:58.970
+You can also go back in time.
+
+55
+00:02:59.200 --> 00:03:02.970
+The evidence replay steps through the year, month by month:
+
+56
+00:03:02.840 --> 00:03:05.850
+port calls, loitering, and radar sightings,
+
+57
+00:03:05.760 --> 00:03:09.210
+exactly as they were recorded. It never draws a route,
+
+58
+00:03:09.000 --> 00:03:11.010
+and it never fills in the gaps.
+
+59
+00:03:10.960 --> 00:03:13.530
+What you see is what the data holds.
+
+60
+00:03:14.600 --> 00:03:17.610
+We're strict about what the data cannot tell us.
+
+61
+00:03:17.640 --> 00:03:20.450
+Nobody publishes whether these tankers are loaded,
+
+62
+00:03:20.280 --> 00:03:22.770
+so we tested whether radar could tell,
+
+63
+00:03:22.640 --> 00:03:25.570
+on two hundred tanker images. It couldn't.
+
+64
+00:03:25.720 --> 00:03:29.810
+It was no better than a coin toss, so we say unknown.
+
+65
+00:03:29.880 --> 00:03:33.170
+Values are ranges, with their assumptions shown.
+
+66
+00:03:33.040 --> 00:03:36.290
+And every vessel links straight back to its sources.
+
+67
+00:03:37.360 --> 00:03:40.490
+Step back, and it isn't one ship.
+
+68
+00:03:40.720 --> 00:03:44.570
+Two hundred and eighty-nine of these three hundred switched identity.
+
+69
+00:03:44.560 --> 00:03:47.530
+Between them, they used eighty-one flags,
+
+70
+00:03:47.320 --> 00:03:50.570
+and eleven fly the flag of a landlocked country today.
+
+71
+00:03:51.720 --> 00:03:52.610
+Next,
+
+72
+00:03:52.400 --> 00:03:56.450
+we'll screen all eight hundred and ninety-two listed ships every day,
+
+73
+00:03:56.280 --> 00:04:00.050
+and add licensed draft data to turn this signal into barrels.
+
+74
+00:04:00.360 --> 00:04:03.970
 Ghost Fleet. The hidden fleet, made visible.

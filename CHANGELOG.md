@@ -3,6 +3,56 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.6.0] - 2026-10-01
+
+### Added
+
+- **Satellite radar and ML** (`ml/`, `requirements-ml.txt`), built at the
+  owner's explicit request:
+  - Global Fishing Watch Sentinel-1 radar detections for the 24 one-degree
+    corridors holding the most snapshot events: 127,265 detections, with 255
+    of the 300 tankers matched by IMO.
+  - Sentinel-1 RTC chips read remotely from Microsoft Planetary Computer.
+  - A CA-CFAR baseline and a small CNN detector, evaluated on held-out
+    scenes. CNN PR-AUC 0.991 against 0.964 for CFAR, with 95.2% recall on
+    unmatched targets. These measure agreement with GFW, not ground truth.
+    Every test disagreement was reviewed visually.
+  - Event-to-radar matching with posteriors: the top target agrees with
+    GFW's own match 87% of the time, and agreement rises across the
+    probability bands.
+  - A side-by-side candidate review queue: 5 possible pairs confirmed of 90
+    reviewed, with the precision of each rule reported.
+  - A pre-registered laden/ballast study. AUC 0.47 on unseen tankers, so it
+    failed the gate and cargo stays UNKNOWN.
+  - An xView3/SARFish evaluation adapter, for when the labels are licensed.
+- `dashboard/data/sar.json` (151 KB) and 118 radar thumbnails
+  (`dashboard/media/sar/`).
+- Evidence matrix rows for radar detections, our radar image match (with its
+  image), unmatched radar targets nearby, and possible side-by-side
+  activity. A new status, *Model estimate*, applies to model outputs, which
+  never add points to the score.
+- Radar detections in the Historical evidence replay.
+- A Models page (`models.html`) that renders every metric, reference, review
+  and gate decision from `sar.json`.
+- `tests/browser_check.py`, a committed 157-check Playwright run, plus 14
+  radar consistency and wording tests (53 in total).
+- A refreshed pitch video (about 4 min) with new *radar* and *replay*
+  scenes and rewritten *score* and *honesty* narration. Also refreshed:
+  README screenshots, GIF, write-up, demo script and a 12-slide pitch deck.
+
+### Changed
+
+- The product brief records the owner's 2026-09-30 amendment. The pilot
+  plan notes which stages are implemented.
+- The pitch narration no longer links loitering to ship-to-ship transfers.
+
+### Fixed
+
+- The desktop page was about 1,500 px taller than the window. Visually hidden
+  link text escaped the rail's scroll area, so the page could scroll into an
+  empty band. The rail now contains it, and a browser check guards against a
+  regression.
+
 ## [0.5.0] - 2026-09-30
 
 ### Added

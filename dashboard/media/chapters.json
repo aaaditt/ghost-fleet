@@ -36,22 +36,32 @@
  },
  {
   "id": "score",
-  "title": "An explained score",
+  "title": "The evidence matrix",
   "start": 117.68
+ },
+ {
+  "id": "radar",
+  "title": "Seen by satellite radar",
+  "start": 141.08
+ },
+ {
+  "id": "replay",
+  "title": "Evidence replay",
+  "start": 176.24
  },
  {
   "id": "honesty",
   "title": "What we don't claim",
-  "start": 139.64
+  "start": 193.8
  },
  {
   "id": "fleet",
   "title": "The whole fleet",
-  "start": 157.6
+  "start": 216.56
  },
  {
   "id": "close",
   "title": "What's next",
-  "start": 171.96
+  "start": 230.92
  }
 ]

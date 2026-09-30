@@ -380,3 +380,93 @@ equals the sum of its breakdown.
 **Remaining:** Deploy (`vercel deploy --prod --cwd dashboard`). README
 screenshots, `docs/demo.gif` and the pitch video still show the pre-0.5.0
 dossier.
+
+## 2026-09-30 to 2026-10-01 — Satellite radar + ML, media refresh (v0.6.0)
+
+**Objective:** The owner asked for the "not implemented" ML list to be
+built: SAR ingestion, GFW SAR detections, a detector, AIS-to-SAR matching, STS
+image detection and a laden/ballast model. After that, deploy v0.5.0, commit
+the browser test, and remake the README, screenshots, GIF, pitch deck,
+scripts and narrated video for the new product.
+
+**Constraints found by probing:**
+- Hardware: a 4 GB GTX 1650 GPU, about 11 GB free disk and 16 GB RAM (the
+  background jobs were twice stopped for low memory).
+- GFW's 4Wings report API allows one concurrent report per token and cannot
+  filter by `vessel_id`, so corridors are queried and filtered by IMO.
+- Planetary Computer's `sentinel-1-rtc` allows anonymous windowed COG reads,
+  about 1.7 s per 2 km chip.
+- xView3/SARFish labels require DIU registration.
+- No free draught data exists.
+
+**Decisions:**
+- Corridors are the 24 one-degree cells holding the most snapshot events.
+- Detector labels are GFW detections, and every detector metric is reported
+  as agreement with GFW, not ground truth. The split is by scene.
+- The matcher never sees GFW's detections. GFW's own AIS match is the
+  reference.
+- STS candidates come from full-resolution component geometry (the CNN
+  heatmap cannot resolve alongside pairs). All candidates go to visual
+  review, and only reviewed pairs are shown.
+- The cargo study uses voyage-context weak labels, and its gate was fixed
+  before results (lower CI bound of AUC ≥ 0.65, ≥ 60 observations, ≥ 20
+  vessels).
+- Model outputs get a new *Model estimate* status and never add points to
+  the screening score.
+
+**Results:**
+- 127,265 GFW detections; 255 of 300 tankers radar-detected.
+- CNN test PR-AUC 0.991 (CI 0.986–0.995) against CFAR 0.964 on 147 held-out
+  scenes. Recall on unmatched targets is 95.2% against 87.2%.
+- A first model was trained on a dataset whose positive budget our own
+  vessels had consumed, leaving only 9 unmatched test positives. That was
+  caught, the dataset rebalanced to 1,308 unmatched positives, and the model
+  retrained.
+- Visual review of all 37 test disagreements: 4 "false alarms" show real
+  unreported vessels, and 19 of 21 misses show no vessel in the chip
+  (likely a same-day second pass).
+- The matcher agrees with GFW 87% of the time, with agreement rising across
+  probability bands (69%, 90%, 100%).
+- Side-by-side: 338 candidates, 90 reviewed, 5 possible pairs. Rule
+  precision is 3/30 and 2/60.
+- Cargo study: 202 observations of 70 tankers, AUC 0.47 and 0.44. The gate
+  failed, so cargo stays UNKNOWN.
+
+**Media:**
+- Narration regenerated for score, radar, replay and honesty (1,526
+  characters; the other scenes were cached). The *score* line linking
+  loitering to STS was dropped.
+- Video: 4 min 8 s, 13 chapters, −16.6 LUFS, 45.9 MB at CRF 25.
+- The recorder now streams frames to disk. Resumed runs open WOLF's dossier
+  first.
+- The video exposed a real layout bug: the page was 2,580 px tall in a
+  1,080 px window. The caption overlay intercepting clicks made Playwright
+  scroll the page. Both are fixed, and the browser check now asserts no
+  vertical page overflow.
+- Also refreshed: four README screenshots (`scripts/screenshots.py`), the
+  GIF (7.8 MB), the write-up, pitch and demo script, and the pitch deck
+  (version 6: new radar and models slides, four revised).
+
+**Changed:**
+- New: `ml/*`, `requirements-ml.txt`, `dashboard/data/sar.json`,
+  `dashboard/media/sar/*.jpg` (118), `dashboard/models.html`,
+  `dashboard/models.js`, `scripts/screenshots.py`,
+  `tests/test_sar_evidence.py`, `docs/screenshot-radar.png`,
+  `docs/screenshot-replay.png`.
+- Modified: dashboard JS/CSS/HTML, `tests/browser_check.py`, video scripts
+  and media, `scripts/figures.py`, `scripts/record_demo.py`, README,
+  CHANGELOG, VERSION, the product brief (amendment), the pilot plan
+  (status), submission docs, the handover and this log.
+
+**Validation:**
+- `python -m pytest -q` → 53 passed.
+- `python tests/browser_check.py` → 159/159 locally. The live site passed
+  157/157 before the overflow check was added; the final result is below.
+- Frames were checked at every new narration cue, and the replay and radar
+  scenes were re-recorded after fixes.
+- Loudness was measured with ffmpeg ebur128.
+
+**Remaining:**
+- Obtain xView3 labels for an independent detector test.
+- Widen radar coverage beyond 24 corridors.
+- Parts of the Russian Pacific coast are rarely imaged by Sentinel-1.

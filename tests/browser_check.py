@@ -71,6 +71,9 @@ def run(pw, width, height, reduced, tag):
     check(f"{tag}: hash deep link", page.evaluate("location.hash") == "#imo=9240885")
     check(f"{tag}: track legend shown", "Loitering offshore" in page.inner_text(".key"))
     check(f"{tag}: no horizontal overflow (dossier)", not overflow(page))
+    if width >= 900:  # desktop is a fixed app frame: the page itself must never scroll
+        dims = page.evaluate("[innerHeight, document.documentElement.scrollHeight]")
+        check(f"{tag}: no vertical page overflow (dossier)", dims[1] <= dims[0], dims)
     page.screenshot(path=str(OUT / f"{tag}-2-dossier.png"), full_page=(width < 500))
     page.locator(".matrix").screenshot(path=str(OUT / f"{tag}-2b-matrix.png"))
 

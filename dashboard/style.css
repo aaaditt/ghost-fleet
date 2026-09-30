@@ -209,6 +209,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 /* Rail */
 
 .rail {
+    position: relative;   /* contains absolutely positioned (visually hidden) text in its own scroll area */
     overflow-y: auto;
     background: var(--paper);
     border-left: 1px solid var(--rule);

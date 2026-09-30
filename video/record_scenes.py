@@ -66,7 +66,7 @@ OVERLAY_JS = r"""
       box-shadow: 0 0 0 6px rgba(163,22,95,.14); opacity: 0;
       transition: left .8s cubic-bezier(.45,.05,.25,1), top .8s cubic-bezier(.45,.05,.25,1),
                   width .8s cubic-bezier(.45,.05,.25,1), height .8s cubic-bezier(.45,.05,.25,1), opacity .5s ease; }
-    #vx-cap { position: fixed; left: 40px; bottom: 90px; z-index: 99997; max-width: 900px; padding: 18px 26px 18px 24px;
+    #vx-cap { position: fixed; left: 40px; bottom: 90px; z-index: 99997; max-width: 900px; pointer-events: none; padding: 18px 26px 18px 24px;
       background: rgba(248,250,250,.96); border-left: 6px solid #a3165f; color: #1c2a35;
       font: 500 30px/1.3 "Public Sans", sans-serif; box-shadow: 0 8px 30px rgba(28,42,53,.18);
       opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
@@ -151,11 +151,19 @@ async def slow_page(browser):
 
 
 class Recorder:
-    """Collects screencast frames with their capture timestamps."""
+    """Collects screencast frames with their capture timestamps.
+
+    Each frame is written to disk as it arrives (a 1080p scene can hold
+    thousands of JPEGs); only (timestamp, path) pairs stay in memory.
+    """
 
     def __init__(self, cdp):
         self.cdp, self.frames, self.t0 = cdp, [], None
         self.stopped = False
+        self.raw = FRAMES / "_raw"
+        self.raw.mkdir(parents=True, exist_ok=True)
+        for f in self.raw.glob("*.jpg"):
+            f.unlink()
 
     async def start(self):
         self.cdp.on("Page.screencastFrame", self._on_frame)
@@ -165,7 +173,9 @@ class Recorder:
         self.t0 = time.time()
 
     def _on_frame(self, ev):
-        self.frames.append((ev["metadata"]["timestamp"], base64.b64decode(ev["data"])))
+        path = self.raw / f"r{len(self.frames):06d}.jpg"
+        path.write_bytes(base64.b64decode(ev["data"]))
+        self.frames.append((ev["metadata"]["timestamp"], path))
         if not self.stopped:
             asyncio.ensure_future(self._ack(ev["sessionId"]))
 
@@ -205,7 +215,7 @@ def write_video(sid, frames, t0, total):
     lines = []
     for n, (ts, data) in enumerate(kept):
         name = f"f{n:05d}.jpg"
-        (out_dir / name).write_bytes(data)
+        (out_dir / name).write_bytes(data.read_bytes() if isinstance(data, Path) else data)
         start = max(ts - t0, 0.0)
         end = (kept[n + 1][0] - t0) if n + 1 < len(kept) else total
         lines.append(f"file '{name}'\nduration {max(end - start, 0.001):.4f}")
@@ -299,26 +309,75 @@ async def scene_score(page, rec, at):
     await page.evaluate("vx.scrollRail(0, 2.4)")
     await rec.sleep(2.5)
     await page.evaluate("vx.ring('.score', 10)")
+    await at("The evidence matrix")
+    await page.evaluate("vx.scrollRail('#matrix-title', 2.0)")
+    await rec.sleep(2.1)
+    await page.evaluate("vx.ring('#d-matrix', 6); vx.caption('Every row: the evidence, its source, its status, its points')")
     for phrase, n in (("Forty points", 1), ("thirty for", 2), ("five for", 3)):
         await at(phrase)
         await page.evaluate(f"vx.ring('#d-matrix tbody tr:nth-child({n})', 5)")
     await at("The map shows")
-    await page.evaluate("vx.ring(null); map.flyTo([25.2, 56.9], 7, {duration: 3.2})")
+    await page.evaluate("vx.caption(''); vx.ring(null); map.flyTo([25.2, 56.9], 7, {duration: 3.2})")
     await at("up to two weeks")
     await page.evaluate("vx.caption('Idled offshore for up to 14 days at a time<small>Loitering events, summer 2026 (open circles)</small>')")
 
 
+async def scene_radar(page, rec, at):
+    await page.evaluate("vx.caption(''); vx.ring(null)")
+    await page.evaluate("vx.scrollRail('#d-matrix tr.row-radar', 2.4)")
+    await rec.sleep(2.5)
+    await at("two hundred and fifty-five")
+    await page.evaluate("vx.ring('#d-matrix tr.row-radar', 5); vx.caption('255 of 300 tankers seen by satellite radar<small>Sentinel-1 detections matched to AIS by Global Fishing Watch · 8 for the Wolf</small>')")
+    await at("We trained our own detector")
+    await page.evaluate("vx.ring('#d-matrix tr.row-our_match', 5)")
+    await at("On a hundred and forty-seven")
+    await page.evaluate("vx.caption('Our detector, 147 unseen radar scenes: 97% of GFW’s ships found<small>False alarms 16 vs 46 for classic CFAR · agreement with GFW, not ground truth</small>')")
+    await at("Here it is")
+    await page.evaluate("vx.scrollRail('#d-matrix .ev-figure', 1.6)")
+    await rec.sleep(1.7)
+    await page.evaluate("vx.ring('#d-matrix .ev-figure img', 4); map.flyTo([25.7995, 56.8934], 8, {duration: 2.4})")
+    await page.evaluate("vx.caption('The Wolf, 4 March 2026, 14:16 UTC<small>Radar target 255 m from its AIS loitering position · match probability 0.85</small>')")
+
+
+async def scene_replay(page, rec, at):
+    await page.evaluate("vx.caption(''); vx.ring(null); map.flyTo([33, 50], 3.4, {duration: 3})")
+    await page.evaluate("document.getElementById('vx-cap').style.bottom = '300px'")   # clear the replay strip
+    await page.evaluate("vx.cursorToEl('#replay-open', 0.5, 0.5)")
+    await at("go back in time")
+    await page.evaluate("vx.press()")
+    await page.click("#replay-open")
+    await rec.sleep(0.8)
+    await page.evaluate("vx.ring('#replay', 4); vx.cursorToEl('#replay-play', 0.5, 0.5)")
+    await at("month by month")
+    await page.evaluate("vx.press()")
+    await page.click("#replay-play")
+    await page.evaluate("vx.hideCursor(); vx.ring(null)")
+    await at("exactly as they were recorded")
+    await page.evaluate("vx.caption('Port calls · loitering · radar sightings, month by month')")
+    await at("never draws a route")
+    await page.evaluate("vx.ring('.replay-note', 6); vx.caption('Recorded evidence only<small>No routes drawn, no gaps filled in</small>')")
+    await at("What you see")
+    await rec.sleep(2.2)
+    await page.evaluate("vx.caption(''); vx.ring(null)")
+    await page.click("#replay-exit")
+    await page.evaluate("document.getElementById('vx-cap').style.bottom = ''")
+
+
 async def scene_honesty(page, rec, at):
-    await page.evaluate("vx.caption(''); map.flyTo([23, 50], 4, {duration: 3})")
-    await page.evaluate("vx.scrollRail('#d-size', 2.6)")
-    await rec.sleep(2.7)
-    await at("so we never guess")
-    await page.evaluate("vx.ring('#d-cargo', 6); vx.caption('Cargo state: unknown<small>No draft readings, so no guessing</small>')")
+    await page.evaluate("vx.caption(''); vx.ring(null)")
+    await page.evaluate("vx.scrollRail('#d-matrix tr.row-cargo', 2.4)")
+    await rec.sleep(2.5)
+    await at("whether these tankers are loaded")
+    await page.evaluate("vx.ring('#d-matrix tr.row-cargo', 5)")
+    await at("no better than a coin toss")
+    await page.evaluate("vx.caption('Radar vs loaded-or-empty: AUC 0.47, a coin toss<small>202 images of 70 tankers · pre-registered test failed · cargo stays unknown</small>')")
     await at("Values are ranges")
+    await page.evaluate("vx.caption(''); vx.scrollRail('#d-size', 2.2)")
+    await rec.sleep(2.3)
     await page.evaluate("vx.ring('#d-size', 8)")
     await at("every vessel links")
-    await page.evaluate("vx.scrollRail('#d-sources', 1.2)")
-    await rec.sleep(1.3)
+    await page.evaluate("vx.scrollRail('#d-sources', 1.6)")
+    await rec.sleep(1.7)
     await page.evaluate("vx.ring('#d-sources', 8); vx.caption('Straight to OpenSanctions and Global Fishing Watch')")
 
 
@@ -336,8 +395,10 @@ async def scene_fleet(page, rec, at):
     await page.evaluate("vx.caption('81 flags between them · 11 landlocked today<small>Malawi 4 · Mali 3 · Zimbabwe 3 · Botswana 1</small>')")
 
 
+NEEDS_DOSSIER = {"score", "radar", "replay", "honesty", "fleet"}
 SITE_SCENES = {"landing": scene_landing, "trend": scene_trend, "ports": scene_ports, "search": scene_search,
-               "identities": scene_identities, "score": scene_score, "honesty": scene_honesty, "fleet": scene_fleet}
+               "identities": scene_identities, "score": scene_score, "radar": scene_radar, "replay": scene_replay,
+               "honesty": scene_honesty, "fleet": scene_fleet}
 CARD_CUES = {"title": ["A ship", "But it cannot"], "problem": ["shadow fleet", "rename", "flags of convenience", "radio identities", "is that hidden supply"],
              "close": ["all eight hundred", "licensed draft data", "Ghost Fleet.", "The hidden fleet"]}
 
@@ -362,6 +423,9 @@ async def record_site(browser, url, sids):
     await page.evaluate("document.fonts.ready")
     await page.wait_for_timeout(4000 * SLOW)             # let the basemap tiles settle
     await page.evaluate(OVERLAY_JS)
+    if sids[0] in NEEDS_DOSSIER:       # resuming mid-story: open the Wolf as the earlier scenes left it
+        await page.evaluate("openDossier('9240885')")
+        await page.wait_for_timeout(5000 * SLOW)
     for sid in sids:
         rec = Recorder(cdp)
         await rec.start()

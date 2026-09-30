@@ -1,28 +1,74 @@
 {
-  "voice": {"name": "Eric", "voice_id": "cjVigY5qzO86Huf0OWal"},
-  "note": "One entry per scene. Numbers are written as words so the voice reads them naturally. Every figure comes from scripts/figures.py (snapshot 30 Sep 2025 - 27 Sep 2026).",
+  "voice": {
+    "name": "Eric",
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+  },
+  "note": "One entry per scene. Numbers are written as words so the voice reads them naturally. Every figure comes from scripts/figures.py (snapshot 30 Sep 2025 - 27 Sep 2026; radar figures from dashboard/data/sar.json).",
   "scenes": [
-    {"id": "title", "kind": "card",
-     "text": "A ship can turn off its beacon. But it cannot stop leaving a trail."},
-    {"id": "problem", "kind": "card",
-     "text": "Since twenty twenty-two, a shadow fleet of ageing tankers has kept sanctioned Russian oil moving to market. The ships rename themselves, switch to flags of convenience, and swap the radio identities that tie them to their past. The oil still reaches the market. So every oil trader has the same question: is that hidden supply rising or falling, and where is it moving?"},
-    {"id": "landing", "kind": "site",
-     "text": "Ghost Fleet answers that on one screen. We took the three hundred most-sanctioned shadow-fleet tankers from OpenSanctions, and traced a full year of their movements through Global Fishing Watch. Two hundred and seventy-six of them appear here, at their latest observed positions. Magenta marks the highest-risk vessels."},
-    {"id": "trend", "kind": "site",
-     "text": "The answer comes first, in plain words. Across these ships, the number active each month fell ten percent over the last three months, compared with the three before. The bars show exactly which months are being compared."},
-    {"id": "ports", "kind": "site",
-     "text": "Below that are the key figures, and where these tankers actually call. Nakhodka, on the Pacific. Primorsk and Ust-Luga, on the Baltic. Suez and Port Said, on the way to Asia. We didn't draw these routes in. They came straight out of the data."},
-    {"id": "search", "kind": "site",
-     "text": "Now, one ship. Suppose you remember a tanker called Longevity Seven. Search that old name, and Ghost Fleet finds what it is called today."},
-    {"id": "identities", "kind": "site",
-     "text": "It's the Wolf. Same hull, same IMO number. It began life as the Danish Torm Gertrud. It became East One in Hong Kong, then Longevity Seven in Palau, then the Wolf, under the flag of Malawi, a country with no coastline. In September it switched again, to Aruba. Seven identities. Seven flags. One ship."},
-    {"id": "score", "kind": "site",
-     "text": "Its risk score of seventy-five is not a black box. Forty points for its sanctions listings, thirty for its identity switches, and five for time spent loitering at sea. The map shows where that happened. This summer it idled offshore for up to two weeks at a time, a pattern often seen with floating storage and ship-to-ship transfers."},
-    {"id": "honesty", "kind": "site",
-     "text": "We're strict about what the data cannot tell us. Public tracking data has no draft readings, so we never guess whether a tanker is loaded. We say unknown. Values are ranges, with their assumptions shown. And every vessel links straight back to its sources."},
-    {"id": "fleet", "kind": "site",
-     "text": "Step back, and it isn't one ship. Two hundred and eighty-nine of these three hundred switched identity. Between them, they used eighty-one flags, and eleven fly the flag of a landlocked country today."},
-    {"id": "close", "kind": "card",
-     "text": "Next, we'll screen all eight hundred and ninety-two listed ships every day, and add licensed draft data to turn this signal into barrels. Ghost Fleet. The hidden fleet, made visible."}
+    {
+      "id": "title",
+      "kind": "card",
+      "text": "A ship can turn off its beacon. But it cannot stop leaving a trail."
+    },
+    {
+      "id": "problem",
+      "kind": "card",
+      "text": "Since twenty twenty-two, a shadow fleet of ageing tankers has kept sanctioned Russian oil moving to market. The ships rename themselves, switch to flags of convenience, and swap the radio identities that tie them to their past. The oil still reaches the market. So every oil trader has the same question: is that hidden supply rising or falling, and where is it moving?"
+    },
+    {
+      "id": "landing",
+      "kind": "site",
+      "text": "Ghost Fleet answers that on one screen. We took the three hundred most-sanctioned shadow-fleet tankers from OpenSanctions, and traced a full year of their movements through Global Fishing Watch. Two hundred and seventy-six of them appear here, at their latest observed positions. Magenta marks the highest-risk vessels."
+    },
+    {
+      "id": "trend",
+      "kind": "site",
+      "text": "The answer comes first, in plain words. Across these ships, the number active each month fell ten percent over the last three months, compared with the three before. The bars show exactly which months are being compared."
+    },
+    {
+      "id": "ports",
+      "kind": "site",
+      "text": "Below that are the key figures, and where these tankers actually call. Nakhodka, on the Pacific. Primorsk and Ust-Luga, on the Baltic. Suez and Port Said, on the way to Asia. We didn't draw these routes in. They came straight out of the data."
+    },
+    {
+      "id": "search",
+      "kind": "site",
+      "text": "Now, one ship. Suppose you remember a tanker called Longevity Seven. Search that old name, and Ghost Fleet finds what it is called today."
+    },
+    {
+      "id": "identities",
+      "kind": "site",
+      "text": "It's the Wolf. Same hull, same IMO number. It began life as the Danish Torm Gertrud. It became East One in Hong Kong, then Longevity Seven in Palau, then the Wolf, under the flag of Malawi, a country with no coastline. In September it switched again, to Aruba. Seven identities. Seven flags. One ship."
+    },
+    {
+      "id": "score",
+      "kind": "site",
+      "text": "Its screening score of seventy-five is not a black box. The evidence matrix lists every piece of evidence, where it came from, and what it adds. Forty points for its sanctions listings, thirty for its identity switches, and five for time spent loitering at sea. The map shows where that happened. This summer it idled offshore for up to two weeks at a time."
+    },
+    {
+      "id": "radar",
+      "kind": "site",
+      "text": "A ship can switch off its tracker. It cannot hide from radar. Satellite radar sees the hull itself, day or night, through cloud. Global Fishing Watch's radar picked up two hundred and fifty-five of these three hundred tankers, eight times for the Wolf. We trained our own detector on those images. On a hundred and forty-seven radar scenes it had never seen, it found ninety-seven percent of the ships Global Fishing Watch found, with a third of the false alarms of the classic method. Here it is finding the Wolf in the Gulf of Oman, right where its tracking data placed it."
+    },
+    {
+      "id": "replay",
+      "kind": "site",
+      "text": "You can also go back in time. The evidence replay steps through the year, month by month: port calls, loitering, and radar sightings, exactly as they were recorded. It never draws a route, and it never fills in the gaps. What you see is what the data holds."
+    },
+    {
+      "id": "honesty",
+      "kind": "site",
+      "text": "We're strict about what the data cannot tell us. Nobody publishes whether these tankers are loaded, so we tested whether radar could tell, on two hundred tanker images. It couldn't. It was no better than a coin toss, so we say unknown. Values are ranges, with their assumptions shown. And every vessel links straight back to its sources."
+    },
+    {
+      "id": "fleet",
+      "kind": "site",
+      "text": "Step back, and it isn't one ship. Two hundred and eighty-nine of these three hundred switched identity. Between them, they used eighty-one flags, and eleven fly the flag of a landlocked country today."
+    },
+    {
+      "id": "close",
+      "kind": "card",
+      "text": "Next, we'll screen all eight hundred and ninety-two listed ships every day, and add licensed draft data to turn this signal into barrels. Ghost Fleet. The hidden fleet, made visible."
+    }
   ]
 }

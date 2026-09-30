@@ -31,7 +31,8 @@ XF = 0.8                    # crossfade between scenes, seconds
 CHAPTERS = {
     "title": "Ghost Fleet", "problem": "The shadow fleet", "landing": "The map",
     "trend": "The trend", "ports": "Where they call", "search": "Search a former name",
-    "identities": "One hull, seven identities", "score": "An explained score",
+    "identities": "One hull, seven identities", "score": "The evidence matrix",
+    "radar": "Seen by satellite radar", "replay": "Evidence replay",
     "honesty": "What we don't claim", "fleet": "The whole fleet", "close": "What's next",
 }
 

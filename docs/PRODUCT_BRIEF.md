@@ -50,7 +50,8 @@ and makes no commercial use of them.
 
 - No claim of proof, accuracy figures, or validated model performance.
 - No live AIS streaming. The data is a dated snapshot.
-- No trained SAR/computer-vision model. SAR zones are context overlays only.
+- ~~No trained SAR/computer-vision model.~~ Superseded by the owner's
+  explicit request on 2026-09-30 (see "Amendment" below).
 - No trading advice.
 
 ## Success criterion
@@ -58,3 +59,20 @@ and makes no commercial use of them.
 In about three minutes, a trader can see where sanctioned tanker activity is
 concentrated and whether it is trending up or down. They can then open one
 vessel and understand exactly which evidence produced its score.
+
+## Amendment, 2026-09-30: satellite radar and ML
+
+The project owner explicitly requested the SAR/ML capabilities that were
+previously out of scope (vessel detection, AIS-to-radar matching, side-by-side
+screening, cargo-state modelling). They are built in `ml/` (v0.6.0) under the
+same evidence standard:
+
+- Radar and model outputs are evidence rows with the status *Model estimate*
+  and a probability. They never change the transparent screening score.
+- Every metric names its reference. Detector and matcher figures are
+  agreement with Global Fishing Watch, not ground truth.
+- Cargo state stays UNKNOWN unless a model passes a pass mark fixed before
+  testing. The radar cargo model failed it (AUC 0.47), and the failure is
+  published on the Models page.
+- Possible side-by-side pairs are shown only after review, and never as a
+  transfer.

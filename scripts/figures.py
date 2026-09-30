@@ -31,4 +31,26 @@ out = {
     "east1": next(({"score": v["risk_score"], "ids": sum(h["source"] == "AIS" for h in v["identity_history"])}
                    for v in V if v["imo"] == "9240885"), None),
 }
+# Radar (SAR) evidence and model results, from dashboard/data/sar.json (built by ml/)
+R = json.load(open("dashboard/data/sar.json", encoding="utf-8"))
+M = R["models"]
+wolf = R["vessels"]["9240885"]
+out["radar"] = {
+    "corridors": len(R["coverage"]["corridors"]),
+    "vessels_detected": sum(1 for v in R["vessels"].values() if v["radar"]["detections"]),
+    "detections_of_our_vessels": sum(v["radar"]["detections"] for v in R["vessels"].values()),
+    "vessels_with_our_match": sum(1 for v in R["vessels"].values() if "our_match" in v),
+    "reviewed_side_by_side": sum(1 for v in R["vessels"].values() for x in v.get("side_by_side", []) if x["label"] == "side_by_side"),
+    "detector_test": {k: {"pr_auc": round(M["detector"][k]["pr_auc"], 3),
+                          "precision": round(M["detector"][k]["at_val_threshold"]["precision"], 3),
+                          "recall": round(M["detector"][k]["at_val_threshold"]["recall"], 3)} for k in ("cnn", "cfar")},
+    "detector_test_scenes": M["detector"]["counts"]["test"]["scenes"],
+    "unmatched_recall": {k: round(v, 3) for k, v in M["detector"]["by_group"]["unmatched"].items()},
+    "matching_agreement": round(M["matching_summary"]["top_candidate_agrees_within_1_2km"], 3),
+    "matching_observations": M["matching_summary"]["observations"],
+    "cargo_auc": {k: round(v["auc_out_of_vessel"], 2) for k, v in M["cargo_summary"]["models"].items()},
+    "cargo_gate_passed": M["cargo_summary"]["gate_passed"],
+    "wolf": {"detections": wolf["radar"]["detections"], "first": wolf["radar"]["first"], "last": wolf["radar"]["last"],
+             "our_match": {k: wolf["our_match"][k] for k in ("date", "time", "posterior", "offset_m", "gfw_agrees")}},
+}
 print(json.dumps(out, indent=1, ensure_ascii=False))

@@ -1,7 +1,11 @@
 # SAR + ML Pilot Plan
 
-*Planning document only. No SAR model or product integration is implemented in
-the current hackathon build.*
+*Status (v0.6.0, 2026-09-30): Stages 1, 3 and 4 and a Stage 5 feasibility
+test were implemented in `ml/` at the owner's request. Stage 2 used GFW
+detections as labels instead of xView3/SARFish, whose labels need DIU
+registration (`ml/xview3.py` is ready for them). Results, including the failed
+cargo-state gate, are on the dashboard's Models page and in `docs/HANDOVER.md`.
+The original plan follows unchanged.*
 
 ## Objective
 
