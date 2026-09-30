@@ -3,6 +3,26 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.4.1] - 2026-09-30
+
+### Added
+
+- An evidence-backed SAR + ML feasibility review separating deployable
+  dark-vessel detection, research-grade STS screening, and experimental
+  laden/ballast inference.
+- A gated pilot plan covering data governance, detector reproduction,
+  probabilistic AIS association, human-reviewed STS candidates, independent
+  cargo-state labels, evaluation, and stop criteria.
+
+### Changed
+
+- Replaced uncited model-accuracy, training-time, latency, and throughput
+  estimates in the datasets/ML research with verified source capabilities and
+  explicit licensing, resolution, label, and ground-truth limitations.
+- Documented that Sentinel-1 IW GRD has about 20 m x 22 m resolution despite
+  10 m pixel spacing, and that it is not a validated freeboard or load-state
+  sensor.
+
 ## [0.4.0] - 2026-09-30
 
 ### Added

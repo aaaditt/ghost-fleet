@@ -1,178 +1,196 @@
-# Datasets & Machine Learning Research
+# Verified SAR, AIS, and ML Data Sources
 
-*Created 2026-09-29 — Technical feasibility, open datasets, training requirements, benchmarks, and latency analysis for Ghost Fleet.*
+*Reviewed 2026-09-30. This replaces the earlier uncited benchmark estimates in
+this file. Product capabilities, availability, and terms can change; verify
+them again before an implementation or commercial decision.*
 
----
+## Purpose
 
-## 1. Executive Summary & Decision Matrix
+This is the source catalogue for the proposed post-hackathon SAR research in
+Ghost Fleet. It records what each source actually supplies, what it does not
+supply, and how it could support an experiment. It does **not** claim model
+accuracy, operating cost, or production readiness.
 
-Ghost Fleet integrates multi-source intelligence to identify shadow fleet tankers, classify cargo states, and price illicit oil flows. This document provides a research evaluation of open-source datasets, machine learning architectures, training pipelines, empirical benchmarks, and system latency for production deployment.
+The project-level conclusions are in [SAR and ML feasibility](SAR_ML_FEASIBILITY.md),
+and the proposed experiment is in [the pilot plan](SAR_ML_PILOT_PLAN.md).
 
-### Model Feasibility Matrix
+## Data-source decision table
 
-| Model Tier | Primary Function | Open Datasets | Training Hardware & Time | Expected Accuracy / F1 | Inference Latency (CPU) |
-|---|---|---|---|---|---|
-| **Tier 1: AIS Cargo Load Classifier** *(Immediate MVP / Production)* | Classifies **LOADED vs. BALLAST** & flags draft/speed anomalies | NOAA MarineCadastre, Danish Maritime Authority (DMA) AIS | **2–10 min** on standard CPU / Colab | **91% – 95% Accuracy** (F1: 0.92) | **< 0.2 ms** / vessel (50k rows in < 1s) |
-| **Tier 2: Sanctions Evasion & STS Graph Network (GNN)** | Predicts probability of clandestine STS transfers & flag-hopping risks | OpenSanctions, GFW Encounters, KSE Shadow Fleet lists | **5–15 min** on Google Colab T4 / CPU | **84% – 89% ROC-AUC** | **~2–5 ms** / sub-graph query |
-| **Tier 3: Space Radar Dark Vessel Detector (CV)** | Detects un-beaconed vessels on Sentinel-1 SAR imagery | DIU / GFW **xView3-SAR** (NeurIPS 2022 Benchmark) | **3–6 hours** on 1x T4 / RTX 3060 GPU | **0.72 – 0.81 F1** (88%+ precision on tankers >100m) | **~15–25 ms** (GPU) / **~180 ms** (CPU) |
+| Source | What is available | Useful for | Important constraint | Decision |
+|---|---|---|---|---|
+| Copernicus Sentinel-1 | Free C-band SAR, including GRD and SLC products; APIs and catalogue access | Wide-area historical screening, reproducing vessel detection, building an acquisition catalogue | Common IW GRD resolution is about 20 m x 22 m despite 10 m pixel spacing; scheduled coverage is not continuous observation | Use for the open pilot and detection research |
+| Global Fishing Watch SAR detections | API/download dataset of SAR detections, with matched/unmatched status and vessel identity where matched | Fastest route to a dark-vessel evidence layer without processing raw scenes | Detection is not identity, intent, cargo state, or proof; API is non-commercial | Use first for a no-training prototype |
+| xView3-SAR | 991 analysis-ready Sentinel-1 scenes with 243,018 labels, AIS/VMS matching, wind and bathymetry context | Reproduce and evaluate maritime-object detection and length estimation | Built for detection and fishing/non-fishing characterization, not tanker load state or STS-transfer confirmation | Use for detector benchmarking, not cargo-state labels |
+| SARFish | Corresponding Sentinel-1 GRD and SLC products and xView3-derived tasks | Compare detected imagery with phase-preserving complex data | Full dataset is multi-terabyte; terms and storage needs must be reviewed before download | Start only with its sample |
+| AIS Message 5 / licensed AIS history | Manually entered present draught, dimensions, destination, identity | Weak labels and covariates for cargo-state research; temporal vessel matching | Draught can be stale, wrong, absent, or manipulated; the GFW records used by Ghost Fleet do not expose it | Never treat it as independent truth |
+| Commercial high-resolution SAR | Sub-metre to few-metre products, targeted tasking, archive search | Detailed vessel separation, height/freeboard research, higher-frequency monitoring | Paid, narrow scenes at the finest modes, sensor/domain shift, contract-specific reuse rights | Consider only after the open-data gates pass |
 
----
+## 1. Copernicus Sentinel-1
 
-## 2. Free & Open-Source Datasets
+Sentinel-1 is a day/night, cloud-penetrating C-band SAR mission. The current
+operational constellation is Sentinel-1C and Sentinel-1D. Copernicus makes
+Sentinel products available free of charge to public, scientific, and
+commercial users. Catalogue and processing interfaces include STAC, OData,
+Sentinel Hub, openEO, and S3-style access.
 
-### A. AIS & Vessel Kinematics (Draft, Speed, Trajectory)
+For the common Interferometric Wide Swath products:
 
-1. **NOAA MarineCadastre AIS**
-   * **URL**: [https://marinecadastre.gov/ais/](https://marinecadastre.gov/ais/)
-   * **Coverage**: All US coastal zones, Gulf of Mexico, Caribbean, and high-seas transit corridors.
-   * **Attributes**: MMSI, IMO, vessel type, SOG (Speed Over Ground), COG (Course Over Ground), reported draft (`draught`), length, width.
-   * **Formats**: CSV, GeoParquet, Geodatabase. Daily dumps (~50–200 MB compressed per day).
-   * **License**: Public Domain (US Government work; 100% free for commercial and academic use).
+| Product | Resolution | Pixel spacing | What that means here |
+|---|---:|---:|---|
+| IW GRD high resolution | 20 m x 22 m | 10 m x 10 m | A 250 m tanker spans several resolution cells in length but only a few across its beam. Pixel spacing is not true resolution. |
+| IW SLC | roughly 2.7–3.5 m slant range x 22 m azimuth | 2.3 m x 14.1 m | Preserves complex phase, but remains strongly anisotropic and is not ordinary map imagery. |
 
-2. **Danish Maritime Authority (DMA) AIS**
-   * **URL**: [http://web.ais.dk/aisdata/](http://web.ais.dk/aisdata/)
-   * **Coverage**: Baltic Sea, Kattegat, and Skagerrak straits (the primary export route for Russian Baltic shadow tankers departing Primorsk/Ust-Luga).
-   * **Attributes**: Timestamp, MMSI, IMO, Name, Lat, Lon, SOG, COG, Draught, Navigational status.
-   * **Formats**: Daily CSV files (~2 GB uncompressed per day).
-   * **License**: Open Danish Public Sector Data.
+Sentinel-1 supports single or dual polarisation, such as VV+VH, not full
+quad-polarimetry. This matters because a published freeboard-retrieval result
+uses polarimetric scattering quantities that are not directly equivalent to
+ordinary Sentinel-1 GRD inputs.
 
-3. **Global Fishing Watch Public Datasets & API**
-   * **URL**: [https://globalfishingwatch.org/our-apis/](https://globalfishingwatch.org/our-apis/)
-   * **Coverage**: Global vessel identity changes (flag/name hops), transshipment events, and carrier vessel encounters.
-   * **License**: Free for non-commercial, academic, and hackathon research.
+The constellation has a nominal six-day repeat pattern, but this is not a
+promise that every sea area is imaged every six days in the desired mode,
+geometry, or polarisation. A pilot must query actual archive coverage and
+acquisition plans for each area of interest.
 
-### B. Synthetic Aperture Radar (SAR) Satellite Imagery
+- [ESA Sentinel-1 facts and figures](https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Facts_and_figures)
+- [Copernicus Sentinel-1 collection and access overview](https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-missions/sentinel-1)
+- [Sentinel-1 GRD processing and catalogue fields](https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S1GRD.html)
+- [STAC catalogue documentation](https://documentation.dataspace.copernicus.eu/APIs/STAC.html)
+- [Sentinel-1 product resolutions](https://sentiwiki.copernicus.eu/web/s1-products)
+- [Sentinel-1 mission and polarisation description](https://sentiwiki.copernicus.eu/web/s1-mission)
+- [Copernicus Data Space terms](https://dataspace.copernicus.eu/terms-and-conditions)
 
-1. **xView3-SAR Dataset (DIU & Global Fishing Watch)**
-   * **URL**: [https://iuu.xview.us/](https://iuu.xview.us/) / [DIUx-xView GitHub](https://github.com/DIUx-xView)
-   * **Scale**: Nearly 1,000 analysis-ready Sentinel-1 SAR scenes (80M+ km²) with **220,000+ annotations**.
-   * **Ground Truth**: Explicit labels for AIS-matched vessels vs. **Dark Vessels** (transponders disabled), estimated length, and vessel classification.
-   * **Citation**: NeurIPS 2022 Datasets and Benchmarks Track.
+## 2. Global Fishing Watch
 
-2. **Copernicus Sentinel-1 SAR Open Archive**
-   * **Access**: Google Earth Engine (`COPERNICUS/S1_GRD`) and AWS Open Data (`s3://sentinel-s1-l1c`).
-   * **Properties**: 10m C-band radar; penetrates cloud cover, smoke, and nighttime darkness.
+The GFW v3 4Wings API lists `public-global-sar-presence:latest`, described as
+industrial-vessel detections derived from Sentinel-1 imagery and deep-learning
+classification. The data currently cover 2017 onward, with updates dependent on
+satellite passes. Filters include whether a detection matched AIS; matched
+records can carry a GFW vessel ID. The downloadable form has richer fields than
+the map API, including length and detection/matching scores.
 
-### C. Sanctions & Shadow Fleet Watchlists
+This is the lowest-friction useful SAR path for Ghost Fleet:
 
-1. **OpenSanctions Maritime Dataset**
-   * **URL**: [https://www.opensanctions.org/datasets/maritime/](https://www.opensanctions.org/datasets/maritime/)
-   * **Coverage**: 20,000+ sanctioned maritime hulls, ownership networks, and watchlists (OFAC SDN, EU, UK OFSI).
-   * **License**: CC BY-NC 4.0 (free for non-commercial evaluation).
+1. Query detections within a small corridor and date range.
+2. Separate AIS-matched and unmatched detections.
+3. Link matched GFW vessel IDs to existing vessel records.
+4. Show the SAR observation time, match status, and source as evidence.
+5. Call unmatched objects **unmatched SAR detections**, not “sanctions evaders.”
 
-2. **KSE Institute Shadow Fleet Database**
-   * **Coverage**: Verified registry of ~400+ Russian oil shadow fleet tankers, flag states, P&I insurers, and vessel age.
+GFW cautions that inferred activity events are estimates. Its AIS encounter
+definition uses modelled positions, proximity, duration, speed, and distance
+from anchorage; it is a lead, not confirmation that cargo moved.
 
----
+The API terms are CC BY-NC 4.0/non-commercial, require attribution, and state
+request limits. Those terms fit the current hackathon research but not an
+assumed commercial deployment.
 
-## 3. Model Architectures & Training Pipelines
+- [GFW SAR detection dataset and API fields](https://globalfishingwatch.org/our-apis/documentation/docs/v3/4wings)
+- [GFW SAR download release](https://globalfishingwatch.org/platform-update/2024-may-data-download-portal-new-dataset-released-featuring-vessel-detections-from-sentinel-1-sar/)
+- [SAR detection interaction example](https://api-doc.globalfishingwatch.org/our-apis/documentation/docs/examples/interaction/interaction-example2)
+- [GFW data caveats](https://globalfishingwatch.org/our-apis/documentation/docs/v3/general-api-doc/data-caveats)
+- [GFW licence, attribution, and rate limits](https://globalfishingwatch.org/our-apis/documentation/docs/license-rate-limits)
 
-### Model 1: AIS Cargo Load & State Classifier (Tabular / Tree-Based)
+## 3. xView3-SAR and SARFish
 
-* **Objective**: Determine whether a tanker is laden (`LOADED`) or in `BALLAST` and score draft reporting anomalies.
-* **Input Features**:
-  * `reported_draft` (meters)
-  * `draft_ratio` ($\frac{\text{reported draft}}{\text{max design draft}}$)
-  * `speed_knots` (SOG)
-  * `speed_anomaly` (departure from typical cruising speed)
-  * `vessel_type_encoded` (VLCC, Suezmax, Aframax, Product Tanker)
-  * `length_to_draft_ratio`
-* **Ground Truth Strategy**: Sample 50,000 tanker voyages from MarineCadastre / DMA AIS where vessels departed known crude export terminals (`LOADED`) versus arriving at refineries (`BALLAST`).
-* **Recommended Algorithm**: `LightGBM` / `XGBoost` / `RandomForestClassifier`.
-* **Training Footprint**:
-  * **Compute**: Standard multi-core CPU or free Google Colab instance.
-  * **Training Time**: **60–180 seconds** on 500,000 rows.
-  * **Artifact Size**: ~2.5 MB (`cargo_model.joblib` or `.onnx`).
+The peer-reviewed xView3-SAR release contains 991 Sentinel-1 scenes covering
+43.2 million km² and 243,018 labels assembled from automated SAR detections,
+probabilistic AIS/VMS matching, and manual annotation. The competition tasks are
+maritime-object detection, vessel classification, fishing-vessel
+classification, and vessel-length estimation. The paper notes that
+medium-resolution SAR can make vessels, rocks, and infrastructure look similar,
+and that visual inspection may not distinguish fishing from non-fishing
+vessels.
 
-```text
-                    ┌─────────────────────────┐
-                    │   Raw AIS Broadcast     │
-                    │ (Draft, SOG, COG, IMO)  │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │ Feature Engineering     │
-                    │ - Draft / MaxDraft      │
-                    │ - Speed Anomaly Index   │
-                    │ - Vessel Type Specs     │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │ LightGBM Classifier     │
-                    │ (Trained on 50k voyages)│
-                    └────────────┬────────────┘
-                                 │
-                    ┌────────────┴────────────┐
-                    ▼                         ▼
-         [ LOADED / High Conf ]     [ BALLAST / Empty ]
-         -> Feeds Oil Flow Valuation -> Feeds Reposition Index
-```
+Therefore xView3 is suitable for:
 
----
+- reproducing a detector baseline;
+- learning SAR preprocessing and scene tiling;
+- measuring detection and length-estimation performance on held-out scenes;
+- testing robustness by geography, coast distance, wind, and target size.
 
-### Model 2: SAR Dark Vessel Object Detector (Computer Vision)
+It is **not** a laden/ballast dataset. It supplies neither freeboard nor cargo
+state labels, and its “dark” concept means an SAR detection without an adequate
+AIS/VMS match—not a finding of illegal conduct.
 
-* **Objective**: Ingest a Sentinel-1 SAR tile (e.g., Kerch Strait, Black Sea) and detect vessel bounding boxes without relying on AIS.
-* **Architecture**: Ultralytics **YOLOv8-medium** or **Faster R-CNN** with a ResNet-50 backbone fine-tuned on single-channel VV/VH SAR polarizations.
-* **Training Footprint**:
-  * **Dataset**: xView3-SAR (20,000 cropped 640x640 chips).
-  * **Compute**: 1x NVIDIA T4 GPU (Google Colab / AWS `g4dn.xlarge`).
-  * **Training Time**: **3.5 to 5.0 hours** (50 epochs).
-  * **Artifact Size**: ~40 MB (`sar_yolov8.pt`).
+SARFish adds paired GRD/SLC access for related tasks. Its public repository says
+the full compressed set is about 3.3 TB and the uncompressed set about 6.5 TB;
+the sample is still several gigabytes. Use the sample before approving the full
+storage and compute commitment.
 
----
+- [xView3-SAR paper](https://proceedings.neurips.cc/paper_files/paper/2022/file/f4d4a021f9051a6c18183b059117e8b5-Paper-Datasets_and_Benchmarks.pdf)
+- [xView3 challenge and dataset](https://iuu.xview.us/)
+- [Official xView3 reference implementation](https://github.com/DIUx-xView/xview3-reference)
+- [SARFish repository and documented sizes](https://github.com/DIUx-xView/SARFish)
 
-### Model 3: Sanctions Evasion Link Predictor (Graph Neural Network)
+The xView3 site describes the data as free/open, but the currently linked data
+terms are not reliably available. Before redistributing data or model weights,
+capture and review the terms presented during download. An open-source code
+licence does not automatically license accompanying imagery or labels.
 
-* **Objective**: Predict illicit ship-to-ship (STS) transfer probability and identify circular shell company ownership networks.
-* **Architecture**: PyTorch Geometric (`PyG`) GraphSAGE or GCN with edge features (distance, duration, draft differential between vessels).
-* **Training Footprint**:
-  * **Compute**: Standard CPU or single GPU.
-  * **Training Time**: **10–15 minutes**.
-  * **Artifact Size**: ~5 MB.
+## 4. AIS draught and ground truth
 
----
+AIS Class A Message 5 contains “maximum present static draught” in 0.1 m units.
+IMO guidance says the officer of the watch manually enters draught at the start
+of a voyage and amends it when required. The same guidance says AIS integrity
+checks do not validate the quality or accuracy of ship-sensor inputs.
 
-## 4. Empirical Performance & Benchmarks
+Consequences for ML:
 
-| Task | Metric | Benchmark Score | Error Modes & Limitations |
-|---|---|---|---|
-| **Cargo State Classification** | **Accuracy / F1** | **93.2% / 0.928** | Manual AIS draft updates by crew can have a 2–6 hour lag after port departure. |
-| **AIS Spoofing Detection** | **ROC-AUC** | **91.5%** | Distinguishing GPS drift / multipath reflections from deliberate circle spoofing. |
-| **SAR Vessel Detection** | **Precision / Recall** | **89.4% / 84.1%** | Heavy sea clutter / breaking waves can produce false positives on small vessels. |
-| **SAR Dark Vessel Matching** | **F1 Score** | **0.762** | Temporal offset between satellite pass and nearest asynchronous AIS ping. |
+- AIS draught can be a useful noisy feature or weak label.
+- A timestamp-aligned draught change around a terminal call can help select
+  candidate loaded and ballast examples.
+- It cannot validate that an independent SAR model has discovered true cargo
+  state if the same AIS field is also used to build the labels.
+- Strong validation needs independent records such as terminal/port loading
+  documentation, surveyor or vessel loading-computer records, or controlled
+  visual readings of draught marks, with appropriate access rights.
 
----
+- [USCG description of AIS Message 5](https://www.navcen.uscg.gov/ais-class-a-static-voyage-message-5)
+- [IMO AIS operational guidance, including manual draught entry](https://www.navcen.uscg.gov/sites/default/files/pdf/ais/references/IMO_A1106_29_Revised_guidelines.pdf)
 
-## 5. Responsiveness, Inference Latency & Resource Load
+## 5. Commercial SAR
 
-### Inference Latency
+Commercial providers resolve much more detail than routine Sentinel-1 wide
+swath products. Current published specifications include:
 
-* **Cargo Classifier (LightGBM/XGBoost)**:
-  * **Per-Vessel Latency**: **0.08 ms** (CPU).
-  * **Whole Fleet (1,000 vessels)**: **~15 ms** batch execution.
-  * **Memory Footprint**: < 45 MB RAM.
-* **SAR Dark Vessel Detector (YOLOv8)**:
-  * **Per-Tile Latency (640x640)**: **18 ms** (GPU) / **160 ms** (CPU).
-  * **Full Satellite Scene (10,000x10,000 px)**: **~4.2 seconds** via sliding window batching.
-  * **Memory Footprint**: ~1.1 GB VRAM / ~800 MB RAM.
+- ICEYE modes from sub-metre Spot/Dwell through 3 m Strip to wider Scan modes
+  at lower resolution.
+- Capella detected and complex products with sub-metre Spotlight modes and
+  roughly metre-class Stripmap products.
 
-### Production Throughput
+These specifications make a targeted height/freeboard or side-by-side-vessel
+experiment more plausible, but resolution alone does not validate a cargo-state
+model. Collection geometry, polarisation, calibration, sea state, vessel
+orientation, motion, and label quality still determine whether the inference
+works. Public list pricing was not found; tasking, archive access, derived-data
+rights, and latency require provider quotes and licence review.
 
-* **Streaming Capacity**: A lightweight FastAPI or Node.js service running on a 2 vCPU / 4 GB RAM instance can ingest **5,000+ AIS messages per second**.
-* **End-to-End Latency**: From incoming raw AIS message -> feature extraction -> model inference -> risk re-scoring -> WebSocket dashboard push is **under 50 milliseconds**.
+Both providers make small open-data collections available for format and
+pipeline testing, but those samples are not a source of chosen tanker/time
+pairs or load-state labels.
 
----
+- [ICEYE imaging modes](https://www.iceye.com/defense-and-intelligence/imaging-modes)
+- [ICEYE product documentation](https://sar.iceye.com/latest/)
+- [ICEYE open data](https://sar.iceye.com/6.0.6/opendata/opendata/)
+- [Capella SAR data modes and formats](https://www.capellaspace.com/solution/sar-data)
+- [Capella product guide](https://support.capellaspace.com/sar-imagery-products-guide)
+- [Capella open-data access](https://support.capellaspace.com/how-do-i-access-capellas-open-data)
 
-## 6. Practical Roadmap for Ghost Fleet
+## 6. Claims removed from the previous version
 
-1. **Current State (v0.1.0)**:
-   * Rule-based marine engineering heuristic operating on draft thresholds and speed bands in `dark_fleet_pipeline.py`.
-2. **Next Step (v0.2.0)**:
-   * Train a lightweight `RandomForestClassifier` or `LightGBM` model on a curated sample of 20,000 NOAA/DMA tanker voyages.
-   * Export the trained weights into `models/cargo_load_model.joblib`.
-   * Integrate inference directly into `dark_fleet_pipeline.py` Step 6.
-3. **Advanced Horizon (v1.0.0)**:
-   * Host an async microservice running YOLOv8 on Sentinel-1 SAR tiles from the xView3 dataset to provide automated dark vessel detection overlays on the Live Maritime Tracker map.
+The previous document gave exact accuracy, F1, latency, training-time, memory,
+and throughput figures without a traceable experiment or citation. It also
+described an AIS cargo classifier as “production” and implied the current code
+already used a draft/speed heuristic. Those claims have been removed because:
+
+- benchmark scores depend on a named dataset split, metric, threshold, hardware,
+  preprocessing, and task definition;
+- xView3 does not benchmark tanker load state;
+- its published scores cannot be treated as expected Ghost Fleet performance;
+- OpenSanctions and GFW events do not provide confirmed oil-transfer labels for
+  the proposed GNN;
+- the current Ghost Fleet snapshot honestly reports cargo state as unknown when
+  evidence is absent.
+
+Any future number belongs in a reproducible experiment report containing the
+dataset version, split policy, code revision, metrics, confidence intervals,
+failure analysis, hardware, and exact command used to produce it.

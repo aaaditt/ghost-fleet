@@ -6,7 +6,7 @@
 A map-first monitor of the sanctioned shadow-fleet tankers, built for oil traders from public data.
 
 [![Live demo](https://img.shields.io/badge/live_demo-ghost--fleet.vercel.app-a3165f?style=flat-square)](https://ghost-fleet.vercel.app)
-![Version](https://img.shields.io/badge/version-0.4.0-1c2a35?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.4.1-1c2a35?style=flat-square)
 ![Tests](https://img.shields.io/badge/tests-20_passing-2e7d5b?style=flat-square)
 ![Data](https://img.shields.io/badge/data-OpenSanctions_%2B_Global_Fishing_Watch-5d707a?style=flat-square)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-1c2a35?style=flat-square)](LICENSE)
@@ -162,6 +162,12 @@ use and is never deployed.
   it answers.
 - [Concept overview](docs/CONCEPT_OVERVIEW.md): the problem from first
   principles.
+- [SAR + ML feasibility](docs/SAR_ML_FEASIBILITY.md): what radar can support
+  now, what remains experimental, and the evidence behind that distinction.
+- [SAR + ML pilot plan](docs/SAR_ML_PILOT_PLAN.md): gated research stages for
+  dark-vessel, STS-candidate, and cargo-state experiments.
+- [Verified data sources](docs/DATASETS_AND_ML_RESEARCH.md): access, licensing,
+  labels, resolution, and ground-truth constraints.
 - Submission: [write-up](docs/submission/WRITEUP.md),
   [demo script](docs/submission/DEMO_SCRIPT.md),
   [pitch outline](docs/submission/PITCH.md).

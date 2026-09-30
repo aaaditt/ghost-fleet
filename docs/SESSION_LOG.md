@@ -276,3 +276,45 @@ video, and publish it with the repo and docs updated.
 
 **Remaining:** The owner adds team names to the deck, rotates the ElevenLabs
 key, and submits.
+
+## 2026-09-30 — SAR + ML feasibility research (v0.4.1)
+
+**Objective:** Determine whether SAR imagery and ML can credibly add physical
+vessel detection, ship-to-ship activity screening, and laden/ballast inference
+to Ghost Fleet. Produce research documentation only; do not change application
+code.
+
+**Research process:** Three parallel web-research tracks reviewed SAR physics
+and freeboard observability, current data/access/licensing, and defensible ML
+validation. The review used official ESA/Copernicus, Global Fishing Watch,
+USCG/IMO, ICEYE, and Capella documentation plus primary peer-reviewed work on
+xView3, AIS–SAR matching, PolSAR freeboard retrieval, vessel dimensions, and
+STS candidate detection.
+
+**Decisions:**
+- SAR vessel detection and probabilistic AIS association are feasible now.
+- An unmatched SAR detection is an analyst lead, not proof that AIS was
+  intentionally disabled and not an identity by itself.
+- Side-by-side geometry can generate possible STS candidates, but a single
+  image cannot confirm cargo transfer or illegality.
+- Routine Sentinel-1 IW GRD (about 20 m x 22 m true resolution, 10 m pixel
+  spacing) is not a validated way to measure tanker freeboard or classify load
+  state. High-resolution/polarimetric imagery plus independent labels is a
+  research path, not a current feature.
+- The first pilot should use GFW's existing matched/unmatched SAR layer before
+  training a detector. Cargo-state research starts only after independent
+  ground truth is available.
+
+**Changed:** Rewrote `docs/DATASETS_AND_ML_RESEARCH.md`; added
+`docs/SAR_ML_FEASIBILITY.md` and `docs/SAR_ML_PILOT_PLAN.md`; linked them from
+the README; updated changelog, version, handover, and session log. No
+application, pipeline, dashboard, test, or data-snapshot code changed.
+
+**Validation:** `git diff --check` passed (with only existing line-ending
+normalization notices); a programmatic check found no missing local Markdown
+targets; the README badge and `VERSION` both report 0.4.1; a grep found none of
+the removed unsupported benchmark claims; `python -m pytest -q` → 20 passed.
+
+**Remaining:** If the owner authorizes implementation after the hackathon, run
+only Stage 1 of the pilot first: a bounded, historical GFW SAR
+matched/unmatched study in one approved corridor.
