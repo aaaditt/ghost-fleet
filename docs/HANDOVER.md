@@ -51,7 +51,7 @@ radar time-lapse, a fleet radar gallery and a guided tour.
 
 - **Validation baseline:**
   - `python -m pytest -q` → 55 passed.
-  - Browser check → 237/237 locally, on desktop, 390 px mobile and reduced
+  - Browser check → 237/237 locally and on the live site, on desktop, 390 px mobile and reduced
     motion (Chromium with SwiftShader WebGL).
 
 ## Immediate next tasks

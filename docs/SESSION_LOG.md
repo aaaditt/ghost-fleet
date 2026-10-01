@@ -489,6 +489,8 @@ Team names on the deck cover.
   crashed scheduling before its first step; requests cut off by navigation
   were logged as errors.
 - Deck cover (version 7) names Aadit Chandra & Abhishekh Verma.
+- Deployed to https://ghost-fleet.vercel.app; the browser check passed
+  237/237 against the live site.
 
 **Validation:**
 - `python -m pytest -q` → 55 passed.
