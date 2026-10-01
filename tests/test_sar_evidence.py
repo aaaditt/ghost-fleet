@@ -116,3 +116,39 @@ UI = "\n".join((DASH / f).read_text(encoding="utf-8") for f in ("models.html", "
 ])
 def test_model_wording_makes_no_unsupported_claim(pattern):
     assert not re.search(pattern, UI, re.I), pattern
+
+
+PASSES_PATH = DASH / "data" / "radar_passes.json"
+
+
+def _km(lat0, lon0, lat1, lon1):
+    import math
+    return math.hypot((lon1 - lon0) * 111.32 * math.cos(math.radians((lat0 + lat1) / 2)), (lat1 - lat0) * 110.57)
+
+
+@pytest.mark.skipif(not PASSES_PATH.exists(), reason="radar_passes.json not built")
+def test_radar_passes_are_georeferenced_around_their_target(sar):
+    passes = json.loads(PASSES_PATH.read_text(encoding="utf-8"))["vessels"]
+    assert set(passes) <= set(VESSELS)
+    for imo, plist in passes.items():
+        assert [p["date"] for p in plist] == sorted(p["date"] for p in plist), imo
+        for p in plist:
+            (wl, nt), (el, nt2), (er, sb), (wr, sb2) = p["corners"]  # TL, TR, BR, BL
+            assert nt > sb and el > wl, imo  # north up, east right
+            # 320 px at 10 m: about 3.2 km on each side
+            assert 3.0 < _km(nt, wl, nt2, el) < 3.4 and 3.0 < _km(nt, wl, sb2, wr) < 3.4, imo
+            t = p["target"]
+            assert min(sb, sb2) < t["lat"] < max(nt, nt2) and min(wl, wr) < t["lon"] < max(el, er), imo
+            assert 0 < t["posterior"] <= 1
+            assert p["confident"] == (t["posterior"] >= 0.8) or t["posterior"] == 0.8  # rounded at the boundary
+            assert (DASH / p["image"]).exists(), p["image"]
+        m = sar["vessels"][imo].get("our_match")
+        if m:
+            best = plist[m["pass"]]
+            assert best["date"] == m["date"] and best["scene"] == m["scene"]
+
+
+@pytest.mark.skipif(not PASSES_PATH.exists(), reason="radar_passes.json not built")
+def test_radar_passes_call_targets_estimates(sar):
+    note = json.loads(PASSES_PATH.read_text(encoding="utf-8"))["note"]
+    assert "not proof" in note

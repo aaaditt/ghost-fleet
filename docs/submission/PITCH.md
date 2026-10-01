@@ -22,7 +22,9 @@ follows `DEMO_SCRIPT.md` and replaces slides 5–8 when presenting in person.
 | 11 | What we don't claim | Not proof, no loaded state (radar failed the test), agreement not ground truth, not live. |
 | 12 | What's next | All 892 ships daily; draft data to barrels; independent radar labels. |
 
-**Before presenting, fill in:** `[Team names]` on the cover.
+The cover names the team: Aadit Chandra & Abhishekh Verma.
+
+**Live demo:** open https://ghost-fleet.vercel.app/?tour=1 for the guided tour (Space pauses, arrow keys step, Esc exits).
 
 Every figure comes from the 2026-09-30 snapshot in `dashboard/data/`
 (`python scripts/figures.py`), including the radar and model results in

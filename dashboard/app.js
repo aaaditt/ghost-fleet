@@ -1,14 +1,16 @@
 /* Ghost Fleet — Hidden Supply Monitor
    Reads the pipeline snapshot (data/vessels.json, data/signal.json) and draws
    a chart of shadow-fleet tankers, a per-vessel evidence dossier, and a
-   historical evidence replay. Open a vessel directly with #imo=<number>.
-   Evidence and replay logic lives in evidence.js (window.GF). */
+   historical evidence replay on a MapLibre globe. Open a vessel directly
+   with #imo=<number>, and a radar pass with #imo=<number>&pass=<n>.
+   Evidence and replay logic lives in evidence.js (window.GF); the radar
+   lens, time-lapse and gallery in radar.js; the guided tour in tour.js. */
 
 const DATA_URL = "data/vessels.json";
 const SIGNAL_URL = "data/signal.json";
 const SAR_URL = "data/sar.json"; // optional: radar evidence (see ml/)
 const HIGH_RISK = 70;
-const HOME = { center: [42, 45], zoom: 3 };
+const HOME = { center: [52, 24], zoom: 2.1 };
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const { fmtDate, fmtMonthLong, fmtMonthShort, titleCase, eventLabel, plural } = GF;
@@ -28,23 +30,20 @@ const FLAG_NAMES = {
 const LANDLOCKED = new Set(["MLI", "MWI", "ZWE", "BWA", "MNG", "SWZ", "BOL"]);
 
 const SCORE_PARTS = [
-    { key: "sanctions", label: "Listing", color: "#a3165f" },
-    { key: "identity", label: "Identity switches", color: "#1c2a35" },
-    { key: "meetings", label: "Loitering and encounters", color: "#5d707a" },
-    { key: "ais_gaps", label: "AIS gaps", color: "#9fb2ba" },
+    { key: "sanctions", label: "Listing", color: "#ff4fa3" },
+    { key: "identity", label: "Identity switches", color: "#e3eaed" },
+    { key: "meetings", label: "Loitering and encounters", color: "#8ea3ac" },
+    { key: "ais_gaps", label: "AIS gaps", color: "#4f6570" },
 ];
 
 let vessels = [];
 let byImo = new Map();
 let snapshot = null;
 let sar = null;
-let markers = new Map();
-let fleetLayer = null;
-let trackLayer = null;
 let selectedImo = null;
 let lastTrigger = null;
 
-const replay = { index: null, on: false, i: 0, timer: null, layer: null, imos: new Set(), perVessel: new Map() };
+const replay = { index: null, on: false, i: 0, timer: null, speed: 0, drawn: 0, imos: new Set(), perVessel: new Map() };
 
 // ── Helpers ─────────────────────────────────────────────────
 
@@ -79,39 +78,169 @@ function vesselName(v) {
     return titleCase(v.current_name || v.name);
 }
 
-function motion() {
-    return { animate: !REDUCED_MOTION.matches };
-}
-
 // ── Map ─────────────────────────────────────────────────────
+// MapLibre GL on a globe. Vessels and events are GeoJSON sources drawn on
+// the canvas; the rail floats over the right of the map, so the camera is
+// padded to keep targets in the visible part.
 
-const map = L.map("map", { worldCopyJump: true, zoomControl: false, minZoom: 2 })
-    .setView(HOME.center, HOME.zoom);
-L.control.zoom({ position: "topright" }).addTo(map);
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 13,
-    attribution: "Esri, GEBCO, NOAA, Garmin, HERE",
-}).addTo(map);
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const tiles = (path, maxzoom = 19) => ({ type: "raster", tiles: [`${ESRI}${path}/MapServer/tile/{z}/{y}/{x}`], tileSize: 256, maxzoom });
+const MARK = { hazard: "#ff4fa3", light: "#f4f7f8", dark: "#0b151c", radar: "#7fd8ff" };
+const BASEMAPS = { satellite: ["sat", "sat-labels"], dark: ["dark", "dark-labels"] };
+
+const map = new maplibregl.Map({
+    container: "map",
+    center: HOME.center,
+    zoom: HOME.zoom,
+    minZoom: 1,
+    maxZoom: 17.5,
+    attributionControl: { compact: true },
+    style: {
+        version: 8,
+        projection: { type: "globe" },
+        sky: {
+            "sky-color": "#06121b", "horizon-color": "#1d4a63", "fog-color": "#0a1a24",
+            "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.5, "fog-ground-blend": 0.4,
+            "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 5, 1, 8, 0],
+        },
+        sources: {
+            sat: { ...tiles("World_Imagery"), attribution: "Imagery: Esri, Maxar, Earthstar Geographics" },
+            "sat-labels": tiles("Reference/World_Boundaries_and_Places"),
+            dark: { ...tiles("Canvas/World_Dark_Gray_Base", 16), attribution: "Esri, HERE, Garmin" },
+            "dark-labels": tiles("Canvas/World_Dark_Gray_Reference", 16),
+        },
+        layers: [
+            { id: "space", type: "background", paint: { "background-color": "#050c12" } },
+            { id: "sat", type: "raster", source: "sat", paint: { "raster-saturation": -0.15, "raster-contrast": 0.05 } },
+            { id: "sat-labels", type: "raster", source: "sat-labels", paint: { "raster-opacity": 0.75 } },
+            { id: "dark", type: "raster", source: "dark", layout: { visibility: "none" } },
+            { id: "dark-labels", type: "raster", source: "dark-labels", layout: { visibility: "none" } },
+        ],
+    },
+});
+map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+const mapReady = new Promise((resolve) => map.on("load", resolve));
+// Requests cut off by leaving the page are not errors; report anything else.
+let leaving = false;
+window.addEventListener("pagehide", () => (leaving = true));
+window.addEventListener("beforeunload", () => (leaving = true));
+map.on("error", (e) => leaving || console.error(e.error || e));
 
 // Legend swatch and map symbol for each event kind; one source for both.
 const KIND_SWATCH = { port_visit: "square", loitering: "ring", gap: "ring-dashed", encounter: "diamond", sar: "cross" };
 
-function eventMarker(e) {
-    if (e.kind === "port_visit" || e.kind === "encounter" || e.kind === "sar") {
-        const cls = KIND_SWATCH[e.kind];
-        return L.marker([e.lat, e.lon], {
-            icon: L.divIcon({ className: "event-icon", html: `<i class="${cls}"></i>`, iconSize: [12, 12] }),
-            keyboard: false,
-        });
-    }
-    return L.circleMarker([e.lat, e.lon], e.kind === "gap"
-        ? { radius: 5, color: "#1c2a35", weight: 1.5, dashArray: "2 2", fill: false }
-        : { radius: 5, color: "#a3165f", weight: 2, fill: false });
+// Draw each event symbol once on a canvas, matching the CSS swatches in the key.
+function addEventIcons() {
+    const px = 2, size = 16;
+    const draw = (name, paint) => {
+        const c = document.createElement("canvas");
+        c.width = c.height = size * px;
+        const g = c.getContext("2d");
+        g.scale(px, px);
+        g.translate(size / 2, size / 2);
+        paint(g);
+        map.addImage(name, g.getImageData(0, 0, c.width, c.height), { pixelRatio: px });
+    };
+    const halo = (g, w) => { g.lineWidth = w + 2; g.strokeStyle = "rgba(5,12,18,0.75)"; g.stroke(); };
+    draw("square", (g) => { g.fillStyle = MARK.light; g.strokeStyle = MARK.dark; g.lineWidth = 1.5; g.fillRect(-4, -4, 8, 8); g.strokeRect(-4, -4, 8, 8); });
+    draw("ring", (g) => { g.beginPath(); g.arc(0, 0, 5, 0, 2 * Math.PI); halo(g, 2.2); g.lineWidth = 2.2; g.strokeStyle = MARK.hazard; g.stroke(); });
+    draw("ring-dashed", (g) => { g.beginPath(); g.arc(0, 0, 5, 0, 2 * Math.PI); halo(g, 1.6); g.setLineDash([2, 2]); g.lineWidth = 1.6; g.strokeStyle = MARK.light; g.stroke(); });
+    draw("diamond", (g) => { g.rotate(Math.PI / 4); g.fillStyle = MARK.dark; g.strokeStyle = MARK.hazard; g.lineWidth = 2; g.fillRect(-4, -4, 8, 8); g.strokeRect(-4, -4, 8, 8); });
+    draw("cross", (g) => { g.beginPath(); g.moveTo(-6, 0); g.lineTo(6, 0); g.moveTo(0, -6); g.lineTo(0, 6); halo(g, 2); g.lineWidth = 2; g.strokeStyle = MARK.radar; g.stroke(); });
 }
 
-function dimMarker(m, dim) {
-    if (m.setStyle) m.setStyle({ opacity: dim ? 0.25 : 1, fillOpacity: dim ? 0.25 : 1 });
-    else m.setOpacity(dim ? 0.3 : 1);
+const EMPTY = { type: "FeatureCollection", features: [] };
+const point = (lon, lat, props) => ({ type: "Feature", geometry: { type: "Point", coordinates: [lon, lat] }, properties: props });
+
+function addDataLayers() {
+    addEventIcons();
+    map.addSource("corridors", { type: "geojson", data: EMPTY });
+    map.addLayer({ id: "corridors", type: "line", source: "corridors",
+        paint: { "line-color": MARK.radar, "line-width": 1, "line-opacity": 0.4, "line-dasharray": [3, 2] } });
+    map.addSource("events", { type: "geojson", data: EMPTY });
+    map.addLayer({ id: "events", type: "symbol", source: "events",
+        layout: { "icon-image": ["get", "icon"], "icon-allow-overlap": true, "icon-ignore-placement": true },
+        paint: { "icon-opacity": ["case", ["get", "dim"], 0.3, 1] } });
+    map.addSource("vessels", { type: "geojson", data: EMPTY });
+    map.addLayer({ id: "vessel-glow", type: "circle", source: "vessels", filter: ["get", "high"],
+        paint: { "circle-radius": 11, "circle-color": MARK.hazard, "circle-blur": 1, "circle-opacity": 0.55 } });
+    map.addLayer({ id: "vessels", type: "circle", source: "vessels",
+        paint: {
+            "circle-radius": ["case", ["get", "high"], 5.5, 4.5],
+            "circle-color": ["case", ["get", "high"], MARK.hazard, MARK.light],
+            "circle-stroke-color": ["case", ["get", "high"], MARK.light, MARK.dark],
+            "circle-stroke-width": 1.5,
+        } });
+
+    const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10, className: "map-tip" });
+    for (const id of ["vessels", "events"]) {
+        map.on("mousemove", id, (e) => {
+            const f = e.features[0];
+            map.getCanvas().style.cursor = f.properties.imo ? "pointer" : "";
+            tip.setLngLat(f.geometry.coordinates).setHTML(f.properties.tip).addTo(map);
+        });
+        map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; tip.remove(); });
+        map.on("click", id, (e) => {
+            const imo = e.features[0].properties.imo;
+            if (imo) openDossier(String(imo));
+        });
+    }
+}
+
+function setBasemap(name) {
+    for (const [key, ids] of Object.entries(BASEMAPS)) {
+        for (const id of ids) map.setLayoutProperty(id, "visibility", key === name ? "visible" : "none");
+    }
+    document.querySelectorAll("#basemap button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.base === name)));
+}
+
+// Keep camera targets clear of the floating rail and bottom panel on wide screens.
+// The padding rides along with each camera move (see motion()): map.setPadding()
+// would jump the camera and cancel a flight in progress.
+const WIDE = window.matchMedia("(min-width: 861px)");
+let PAD = { top: 0, left: 0, right: 0, bottom: 0 };
+function padMap() {
+    const panel = ["lens", "gallery", "replay"].map($).find((el) => !el.hidden);
+    PAD = WIDE.matches
+        ? { top: 50, left: 0, right: $("rail").offsetWidth + 24, bottom: panel ? panel.offsetHeight + 12 : 0 }
+        : { top: 0, left: 0, right: 0, bottom: 0 };
+}
+
+function motion(ms = 2400) {
+    return { duration: REDUCED_MOTION.matches ? 0 : ms, essential: true, padding: PAD };
+}
+
+function go(lon, lat, zoom, opts = {}) {
+    map.flyTo({ center: [lon, lat], zoom, pitch: 0, bearing: 0, ...motion(opts.ms), ...opts });
+}
+
+function goHome() {
+    go(HOME.center[0], HOME.center[1], HOME.zoom);
+}
+
+function eventFeature(e, props) {
+    return point(e.lon, e.lat, { icon: KIND_SWATCH[e.kind], kind: e.kind, dim: false, ...props });
+}
+
+function setEvents(features) {
+    map.getSource("events")?.setData({ type: "FeatureCollection", features });
+}
+
+function showFleet(on) {
+    for (const id of ["vessels", "vessel-glow"]) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+}
+
+function fleetShown() {
+    return map.getLayoutProperty("vessels", "visibility") !== "none";
+}
+
+// Dim every vessel but one (or none, with imo = null).
+function focusVessel(imo) {
+    const op = imo ? ["case", ["==", ["get", "imo"], imo], 1, 0.25] : 1;
+    map.setPaintProperty("vessels", "circle-opacity", op);
+    map.setPaintProperty("vessels", "circle-stroke-opacity", op);
+    map.setPaintProperty("vessel-glow", "circle-opacity", imo ? ["case", ["==", ["get", "imo"], imo], 0.55, 0.1] : 0.55);
 }
 
 function setEventKey(kinds) {
@@ -121,49 +250,46 @@ function setEventKey(kinds) {
 }
 
 function drawVessels() {
-    fleetLayer = L.layerGroup().addTo(map);
-    for (const v of vessels) {
-        if (v._lat == null) continue;
-        const high = v.risk_score >= HIGH_RISK;
-        const m = L.circleMarker([v._lat, v._lng], {
-            radius: high ? 6 : 5,
-            color: high ? "#f8fafa" : "#1c2a35",
-            weight: 1.5,
-            fillColor: high ? "#a3165f" : "#f8fafa",
-            fillOpacity: 1,
-        }).addTo(fleetLayer);
-        m.bindTooltip(`<b>${esc(vesselName(v))}</b><br>Score ${v.risk_score} · last seen ${fmtDate(v.last_seen)}`);
-        m.on("click", () => openDossier(v.imo));
-        markers.set(v.imo, m);
-    }
+    map.getSource("vessels").setData({
+        type: "FeatureCollection",
+        features: vessels.filter((v) => v._lat != null).map((v) => point(v._lng, v._lat, {
+            imo: v.imo,
+            high: v.risk_score >= HIGH_RISK,
+            tip: `<b>${esc(vesselName(v))}</b><br>Score ${v.risk_score} · last seen ${fmtDate(v.last_seen)}`,
+        })),
+    });
+    if (!sar) return;
+    map.getSource("corridors").setData({
+        type: "FeatureCollection",
+        features: sar.coverage.corridors.map(({ id, bbox: [w, s, e, n] }) => ({
+            type: "Feature", properties: { id },
+            geometry: { type: "Polygon", coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] },
+        })),
+    });
 }
 
 function drawTrack(v) {
-    clearTrack();
     const pts = v.events.filter(GF.isPositioned);
-    if (!pts.length) return;
+    if (!pts.length) return clearTrack();
     // Points only: events are sparse snapshots, and a line between them
     // would imply a route (often straight across land) the ship never sailed.
-    trackLayer = L.layerGroup().addTo(map);
-    for (const e of pts) {
-        eventMarker(e).bindTooltip(`${fmtDate(e.start)}<br>${esc(eventLabel(e))}`).addTo(trackLayer);
-    }
-    for (const [imo, m] of markers) {
-        dimMarker(m, imo !== v.imo);
-        if (imo === v.imo) m.bringToFront();
-    }
+    setEvents(pts.map((e) => eventFeature(e, { tip: `${fmtDate(e.start)}<br>${esc(eventLabel(e))}` })));
+    focusVessel(v.imo);
     setEventKey(new Set(pts.map((e) => e.kind)));
     document.body.classList.add("tracking");
     $("key-mode").textContent = `${vesselName(v)}: dated events`;
-    map.fitBounds(L.latLngBounds(pts.map((e) => [e.lat, e.lon])).pad(0.25), { maxZoom: 6, ...motion() });
+    const b = new maplibregl.LngLatBounds();
+    for (const e of pts) b.extend([e.lon, e.lat]);
+    const m = motion();
+    const padding = Object.fromEntries(Object.entries(m.padding).map(([k, x]) => [k, x + 60]));
+    map.fitBounds(b, { maxZoom: 6, pitch: 0, bearing: 0, ...m, padding });
 }
 
 function clearTrack() {
-    if (trackLayer) map.removeLayer(trackLayer);
-    trackLayer = null;
-    for (const m of markers.values()) dimMarker(m, false);
+    focusVessel(null);
     document.body.classList.remove("tracking");
     if (!replay.on) {
+        setEvents([]);
         setEventKey(new Set());
         $("key-mode").textContent = "Latest positions";
     }
@@ -173,16 +299,17 @@ function clearTrack() {
 
 function openReplay() {
     if (!replay.index || !replay.index.months.length) return;
+    radarClear();
+    closeGallery();
     replay.on = true;
     clearTrack();
-    map.removeLayer(fleetLayer);
-    replay.layer = L.layerGroup().addTo(map);
+    showFleet(false);
     document.body.classList.add("replaying");
     $("replay").hidden = false;
     $("replay-open").hidden = true;
     $("replay-open").setAttribute("aria-expanded", "true");
-    map.invalidateSize();
-    map.setView([30, 40], 2, motion());
+    padMap();
+    go(48, 26, 2.4);
     setReplay(replay.index.months.length - 1);
     $("replay-slider").focus();
 }
@@ -190,20 +317,21 @@ function openReplay() {
 function closeReplay() {
     stopReplay();
     replay.on = false;
-    map.removeLayer(replay.layer);
-    replay.layer = null;
-    fleetLayer.addTo(map);
+    setEvents([]);
+    showFleet(true);
     document.body.classList.remove("replaying");
     $("replay").hidden = true;
     $("replay-open").hidden = false;
     $("replay-open").setAttribute("aria-expanded", "false");
-    map.invalidateSize();
+    padMap();
     renderList($("vessel-search").value);
     const v = selectedImo && byImo.get(selectedImo);
-    if (v && v._lat != null) drawTrack(v);
-    else {
+    if (v && v._lat != null) {
+        drawTrack(v);
+        radarDossier(v);
+    } else {
         clearTrack();
-        map.setView(HOME.center, HOME.zoom, motion());
+        goHome();
     }
     $("replay-open").focus();
 }
@@ -251,22 +379,22 @@ function setReplay(i) {
 }
 
 function drawReplayMarkers(obs) {
-    replay.layer.clearLayers();
-    const selected = [];
-    for (const o of obs) {
+    const features = obs.map((o) => {
         const v = byImo.get(o.imo);
         const e = o.radar ? { kind: "sar", start: o.start, end: o.end, lat: o.lat, lon: o.lon } : v.events[o.index];
         const range = e.end && e.end.slice(0, 10) !== e.start.slice(0, 10)
             ? `${fmtDate(e.start)} – ${fmtDate(e.end)}` : fmtDate(e.start);
-        const m = eventMarker(e)
-            .bindTooltip(`<b>${esc(vesselName(v))}</b><br>${esc(eventLabel(e))}<br>${range}` +
-                (o.began ? "" : "<br><i>Began before this month</i>"))
-            .on("click", () => openDossier(o.imo));
-        if (selectedImo && o.imo !== selectedImo) dimMarker(m, true);
-        m.addTo(replay.layer);
-        if (o.imo === selectedImo) selected.push(m);
-    }
-    for (const m of selected) m.bringToFront?.();
+        return eventFeature(e, {
+            imo: o.imo,
+            dim: Boolean(selectedImo && o.imo !== selectedImo),
+            tip: `<b>${esc(vesselName(v))}</b><br>${esc(eventLabel(e))}<br>${range}` +
+                (o.began ? "" : "<br><i>Began before this month</i>"),
+        });
+    });
+    // Later features draw on top: put the selected vessel's marks last.
+    features.sort((a, b) => Number(b.properties.dim) - Number(a.properties.dim));
+    setEvents(features);
+    replay.drawn = features.length;
 }
 
 function playReplay() {
@@ -278,7 +406,7 @@ function playReplay() {
     replay.timer = setInterval(() => {
         if (replay.i >= last) return stopReplay();
         setReplay(replay.i + 1);
-    }, REDUCED_MOTION.matches ? 2500 : 1500);
+    }, replay.speed || (REDUCED_MOTION.matches ? 2500 : 1500));
 }
 
 function stopReplay() {
@@ -350,7 +478,7 @@ function renderTrend(series) {
     }).join("");
     $("trend-caption").textContent =
         `Tankers with recorded activity each month, ${fmtMonth(series[0].month)} to ${fmtMonth(series[n - 1].month)}. ` +
-        `The headline compares the dark bars with the grey ones. The latest month is incomplete.`;
+        `The headline compares the bright bars with the grey ones. The latest month is incomplete.`;
 }
 
 function renderPorts(topPorts) {
@@ -422,13 +550,18 @@ function renderMatrix(v) {
                 <span class="ev-detail">${esc(r.detail)}</span>
                 <span class="ev-source">Source: ${esc(r.source)}${r.rule ? ` · Scoring: ${esc(r.rule)}` : ""}</span>
                 ${r.image ? `<figure class="ev-figure"><img src="${esc(r.image)}" width="288" height="288" loading="lazy"
-                    alt="${esc(r.caption)}"><figcaption>${esc(r.caption)}</figcaption></figure>` : ""}
+                    alt="${esc(r.caption)}"><figcaption>${esc(r.caption)}</figcaption></figure>
+                    <button type="button" class="ev-map" data-radar-pass>See it on the satellite map</button>` : ""}
                 ${r.lists && r.lists.length ? `<details class="ev-lists"><summary>Show the ${r.lists.length} source lists</summary>
                     <ul>${r.lists.map((l) => `<li><code>${esc(l)}</code></li>`).join("")}</ul></details>` : ""}
             </th>
             <td><span class="status st-${r.status.key}">${esc(r.status.label)}</span></td>
             ${cell(r)}
         </tr>`).join("");
+    $("d-matrix").onclick = (ev) => {
+        const m = ev.target.closest("[data-radar-pass]") && sar?.vessels[v.imo]?.our_match;
+        if (m) showPass(v.imo, m.pass);
+    };
     $("d-total").innerHTML = matchesScore
         ? `<b>${total}</b>`
         : `<b>${v.risk_score}</b> <span class="pts-none">(rows sum to ${total})</span>`;
@@ -471,7 +604,7 @@ function openDossier(imo) {
         : `<li class="empty">No loitering, port calls or AIS gaps with a date and position recorded in this window.</li>`;
     $("d-events").onclick = (ev) => {
         const i = ev.target.closest("button[data-event]")?.dataset.event;
-        if (i != null) map.setView([recent[i].lat, recent[i].lon], 7, motion());
+        if (i != null) go(recent[i].lon, recent[i].lat, 7);
     };
 
     const cap = v.est_cargo_barrels, flow = v.est_annual_flow_usd;
@@ -489,6 +622,7 @@ function openDossier(imo) {
     if (replay.on) drawReplayMarkers(replay.index.observations(replay.index.months[replay.i]));
     else if (v._lat != null) drawTrack(v);
     else clearTrack();
+    if (!replay.on) radarDossier(v);
     $("d-name").focus({ preventScroll: true });
 }
 
@@ -497,11 +631,12 @@ function closeDossier() {
     history.replaceState(null, "", location.pathname + location.search);
     $("view-dossier").hidden = true;
     $("view-monitor").hidden = false;
+    radarClear();
     if (replay.on) {
         setReplay(replay.i);
     } else {
         clearTrack();
-        map.setView(HOME.center, HOME.zoom, motion());
+        goHome();
     }
     const back = lastTrigger && document.querySelector(`#vessel-list button[data-imo="${lastTrigger}"]`);
     (back || $("vessel-search")).focus({ preventScroll: !back });
@@ -510,8 +645,10 @@ function closeDossier() {
 // ── Boot ────────────────────────────────────────────────────
 
 function openFromHash() {
-    const m = location.hash.match(/imo=(\d{7})/);
-    if (m && byImo.has(m[1])) openDossier(m[1]);
+    const m = location.hash.match(/imo=(\d{7})(?:&pass=(\d+))?/);
+    if (!m || !byImo.has(m[1])) return;
+    if (m[1] !== selectedImo || $("view-dossier").hidden) openDossier(m[1]);
+    if (m[2] != null) showPass(m[1], Number(m[2]));
 }
 
 async function load() {
@@ -523,6 +660,10 @@ async function load() {
         sar = await fetch(SAR_URL).then((r) => (r.ok ? r.json() : null)).catch(() => null);
         vessels = snapshot.vessels;
         byImo = new Map(vessels.map((v) => [v.imo, v]));
+        await mapReady;
+        addDataLayers();
+        padMap();
+        map.setPadding(PAD);
         drawVessels();
         renderMonitor(signal, snapshot);
 
@@ -536,6 +677,8 @@ async function load() {
             $("replay-open").hidden = false;
         }
         openFromHash();
+        document.body.classList.add("ready");
+        document.dispatchEvent(new Event("gf:ready"));
     } catch (err) {
         $("headline").textContent = "The snapshot could not be loaded.";
         $("view-monitor").insertAdjacentHTML("afterbegin",
@@ -568,9 +711,15 @@ $("replay-skip").addEventListener("click", (e) => {
     first.scrollIntoView({ block: "center", ...(REDUCED_MOTION.matches ? {} : { behavior: "smooth" }) });
     first.focus({ preventScroll: true });
 });
+$("basemap").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-base]");
+    if (b) setBasemap(b.dataset.base);
+});
+WIDE.addEventListener("change", padMap);
+window.addEventListener("resize", padMap);
 window.addEventListener("hashchange", openFromHash);
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !$("view-dossier").hidden) closeDossier();
+    if (e.key === "Escape" && !$("view-dossier").hidden && !document.body.classList.contains("touring")) closeDossier();
 });
 
 load();

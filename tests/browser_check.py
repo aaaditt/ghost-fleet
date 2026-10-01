@@ -6,7 +6,8 @@ Serve the dashboard, then run:
 
 Runs desktop (1440x900), mobile (390x844) and reduced-motion (1280x800)
 passes and exits non-zero on any failure. Screenshots go to
-.cache/browser-shots/ (git-ignored). Needs Playwright with Chromium.
+.cache/browser-shots/ (git-ignored). Needs Playwright with Chromium; the
+map is WebGL (MapLibre), so Chromium runs with software rendering.
 """
 
 import argparse
@@ -30,19 +31,31 @@ def overflow(page):
     return page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
 
 
+def settle(page):
+    """Wait for the camera to stop (flights last a few seconds unless reduced motion is on)."""
+    page.wait_for_timeout(150)
+    page.wait_for_function("!map.isMoving()", timeout=15000)
+
+
 def run(pw, width, height, reduced, tag):
-    browser = pw.chromium.launch()
+    browser = pw.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
     ctx = browser.new_context(viewport={"width": width, "height": height},
                               reduced_motion="reduce" if reduced else "no-preference")
     page = ctx.new_page()
     errors = []
-    page.on("console", lambda m: m.type == "error" and errors.append(m.text))
-    page.on("pageerror", lambda e: errors.append(str(e)))
+    # Basemap tiles still in flight when a test navigates away fail with status 0; that is not an app error.
+    page.on("console", lambda m: m.type == "error" and "Failed to fetch (0): https://server.arcgisonline.com/" not in m.text
+            and errors.append(m.text))
+    page.on("pageerror", lambda e: errors.append(f"{e} @ {page.url} :: {e.stack}"))
 
     # Normal map
     page.goto(URL, wait_until="networkidle")
-    page.wait_for_selector("#vessel-list button")
-    check(f"{tag}: fleet markers drawn", page.locator(".leaflet-interactive").count() >= 276)
+    page.wait_for_selector("body.ready #vessel-list button")
+    page.wait_for_function("map.loaded()", timeout=20000)
+    n_fleet = page.evaluate("map.getSource('vessels').getData().then(d => d.features.length)")
+    check(f"{tag}: fleet markers drawn", n_fleet >= 276, n_fleet)
+    check(f"{tag}: globe projection", page.evaluate("map.getProjection().type") == "globe")
+    check(f"{tag}: radar corridors drawn", page.evaluate("map.querySourceFeatures('corridors').length") > 0)
     check(f"{tag}: replay toggle visible", page.is_visible("#replay-open"))
     check(f"{tag}: no horizontal overflow (map)", not overflow(page))
     page.screenshot(path=str(OUT / f"{tag}-1-latest.png"))
@@ -79,8 +92,8 @@ def run(pw, width, height, reduced, tag):
 
     # Event click in the dossier
     page.locator("#d-events button").first.click()
-    page.wait_for_timeout(600)
-    check(f"{tag}: event click zooms", page.evaluate("map.getZoom()") == 7)
+    settle(page)
+    check(f"{tag}: event click zooms", round(page.evaluate("map.getZoom()")) == 7, page.evaluate("map.getZoom()"))
 
     # Escape returns, focus goes back to the list button
     page.keyboard.press("Escape")
@@ -94,10 +107,9 @@ def run(pw, width, height, reduced, tag):
     page.wait_for_selector("#replay:not([hidden])")
     check(f"{tag}: slider focused", page.evaluate("document.activeElement.id") == "replay-slider")
     check(f"{tag}: starts at latest month", "September 2026" in page.inner_text("#replay-period"))
-    check(f"{tag}: fleet layer hidden", page.evaluate("!map.hasLayer(fleetLayer)"))
+    check(f"{tag}: fleet layer hidden", page.evaluate("!fleetShown()"))
     n_last = page.evaluate("replay.index.observations(replay.index.months.at(-1)).length")
-    check(f"{tag}: markers equal observations", page.locator(".leaflet-marker-pane .event-icon, path.leaflet-interactive").count() == n_last,
-          (page.locator(".leaflet-marker-pane .event-icon, path.leaflet-interactive").count(), n_last))
+    check(f"{tag}: markers equal observations", page.evaluate("replay.drawn") == n_last, (page.evaluate("replay.drawn"), n_last))
     check(f"{tag}: list filtered to month", "Vessels with observations in September 2026" in page.inner_text("#vessels-title"))
     check(f"{tag}: next disabled at end", page.is_disabled("#replay-next"))
     page.keyboard.press("ArrowLeft")
@@ -138,13 +150,14 @@ def run(pw, width, height, reduced, tag):
     page.click("#btn-back")
 
     # Open a dossier by clicking a replay marker on the map
-    page.evaluate("window.scrollTo(0, 0); map.setView([25.4, 56.6], 8, {animate:false})")
+    page.evaluate("window.scrollTo(0, 0); map.jumpTo({center: [56.6, 25.4], zoom: 8})")
+    page.wait_for_function("map.loaded()", timeout=15000)
     page.wait_for_timeout(300)
-    pt = page.evaluate("""() => { const m = document.getElementById('map').getBoundingClientRect();
-        for (const el of document.querySelectorAll('.leaflet-marker-pane .event-icon')) {
-            const r = el.getBoundingClientRect(), x = r.x + r.width / 2, y = r.y + r.height / 2;
+    pt = page.evaluate("""() => { const m = map.getCanvas().getBoundingClientRect();
+        for (const f of map.queryRenderedFeatures({layers: ['events']})) {
+            const p = map.project(f.geometry.coordinates), x = m.left + p.x, y = m.top + p.y;
             if (x > m.left + 60 && x < m.right - 60 && y > m.top + 60 && y < m.bottom - 60
-                && document.elementFromPoint(x, y)?.closest('.event-icon')) return [x, y];
+                && document.elementFromPoint(x, y) === map.getCanvas()) return [x, y];
         } return null; }""")
     check(f"{tag}: a replay marker is clickable", pt is not None)
     if pt:
@@ -161,7 +174,7 @@ def run(pw, width, height, reduced, tag):
 
     # Exit replay
     page.click("#replay-exit")
-    check(f"{tag}: exit restores fleet", page.evaluate("map.hasLayer(fleetLayer) && !replay.on") and page.is_hidden("#replay"))
+    check(f"{tag}: exit restores fleet", page.evaluate("fleetShown() && !replay.on") and page.is_hidden("#replay"))
     check(f"{tag}: list restored", page.inner_text("#vessels-title") == "Vessels")
 
     # Deep link + vessel without positioned events
@@ -173,15 +186,86 @@ def run(pw, width, height, reduced, tag):
     page.goto(URL + "#imo=9240885", wait_until="networkidle")
     page.wait_for_selector("#view-dossier:not([hidden])")
     check(f"{tag}: deep link opens WOLF", page.inner_text("#d-name") == "Wolf")
+
+    # Radar lens: the teaser, then the image draped on the map
+    page.wait_for_selector("#lens:not([hidden])")
+    check(f"{tag}: lens teaser offered", "radar passes" in page.inner_text("#lens"), page.inner_text("#lens"))
+    page.click("#d-matrix [data-radar-pass]")
+    page.wait_for_selector("#lens:not(.teaser) #lens-when")
+    settle(page)
+    check(f"{tag}: radar image on the map", page.evaluate("!!map.getSource('radar') && map.getLayer('radar').type === 'raster'"))
+    check(f"{tag}: lens deep link", page.evaluate("location.hash") == "#imo=9240885&pass=2", page.evaluate("location.hash"))
+    check(f"{tag}: lens flew in", page.evaluate("map.getZoom()") > 13, page.evaluate("map.getZoom()"))
+    check(f"{tag}: ring on the target", page.locator(".radar-ring").count() == 1 and page.locator(".radar-spot").count() == 1)
+    check(f"{tag}: lens says model estimate", "Model estimate" in page.inner_text("#lens-facts"), page.inner_text("#lens-facts"))
+    check(f"{tag}: pass filmstrip", page.locator("#lens-strip button").count() == 7)
+    check(f"{tag}: no overflow (lens)", not overflow(page))
+    page.screenshot(path=str(OUT / f"{tag}-5-lens.png"), full_page=(width < 500))
+    page.click("#lens-next")
+    check(f"{tag}: next pass", page.evaluate("lens.i") == 3 and "Pass 4 of 7" in page.inner_text("#lens-when"))
+    page.fill("#lens-mix", "20")
+    check(f"{tag}: opacity slider", abs(page.evaluate("map.getPaintProperty('radar', 'raster-opacity')") - 0.2) < 0.01)
+    page.click("#lens-blink")
+    check(f"{tag}: blink on", page.get_attribute("#lens-blink", "aria-pressed") == "true")
+    page.click("#lens-blink")
+    check(f"{tag}: blink off restores opacity", abs(page.evaluate("map.getPaintProperty('radar', 'raster-opacity')") - 0.2) < 0.01)
+    page.click("#lens-close")
+    check(f"{tag}: closing the lens removes the image", page.evaluate("!map.getSource('radar')") and page.is_hidden("#lens")
+          and page.locator(".radar-ring").count() == 0)
+    page.goto(URL + "#imo=9240885&pass=5", wait_until="networkidle")
+    page.wait_for_selector("#lens:not(.teaser) #lens-when")
+    check(f"{tag}: pass deep link opens that pass", "Pass 6 of 7" in page.inner_text("#lens-when"))
+
+    # Radar gallery: every pass across the fleet
+    page.click("#gallery-open")
+    page.wait_for_selector("#gallery:not([hidden]) #gallery-list button")
+    n_all = page.locator("#gallery-list button").count()
+    check(f"{tag}: gallery lists every pass", n_all == page.evaluate("allPasses().length") and n_all > 100, n_all)
+    check(f"{tag}: gallery closes the lens", page.is_hidden("#lens"))
+    page.check("#gallery-conf")
+    n_conf = page.locator("#gallery-list button").count()
+    check(f"{tag}: confident filter", 0 < n_conf < n_all, (n_conf, n_all))
+    page.screenshot(path=str(OUT / f"{tag}-6-gallery.png"), full_page=(width < 500))
+    pick = page.locator("#gallery-list button").first
+    pick_imo, pick_pass = pick.get_attribute("data-imo"), pick.get_attribute("data-pass")
+    pick.click()
+    page.wait_for_selector("#lens:not(.teaser) #lens-when")
+    check(f"{tag}: gallery pick opens its pass", page.evaluate("location.hash") == f"#imo={pick_imo}&pass={pick_pass}"
+          and page.is_hidden("#gallery"), page.evaluate("location.hash"))
     # hashchange
     page.evaluate("location.hash = '#imo=9242223'")
     page.wait_for_timeout(200)
     gap = page.inner_text("#d-matrix tr.row-ais_gaps")
     check(f"{tag}: hashchange opens vessel with gap", "possible intentional disabling" in gap, gap)
 
+    # Guided tour: start, step with the keyboard, exit
+    page.goto(URL, wait_until="networkidle")
+    page.wait_for_selector("body.ready #vessel-list button")
+    page.click("#tour-start")
+    page.wait_for_selector("#tour:not([hidden])")
+    page.wait_for_function("tour.step === 0 && document.getElementById('tour-text').textContent.length > 0")
+    check(f"{tag}: tour starts", "tankers" in page.inner_text("#tour-text"), page.inner_text("#tour-text"))
+    page.click("#tour-pause")
+    check(f"{tag}: tour pauses", page.evaluate("tour.paused"))
+    page.keyboard.press("ArrowRight")
+    page.wait_for_function("tour.step === 1")
+    page.keyboard.press("ArrowRight")
+    page.keyboard.press("ArrowRight")
+    page.wait_for_function("tour.step === 3 && !document.getElementById('view-dossier').hidden", timeout=15000)
+    check(f"{tag}: tour opens WOLF", page.inner_text("#d-name") == "Wolf")
+    page.keyboard.press("ArrowRight")
+    page.wait_for_function("tour.step === 4 && !!map.getSource('radar')", timeout=20000)
+    check(f"{tag}: tour drapes the radar image", page.evaluate("lens.imo") == "9240885")
+    page.screenshot(path=str(OUT / f"{tag}-7-tour.png"))
+    page.keyboard.press("Escape")
+    check(f"{tag}: escape ends tour", page.is_hidden("#tour") and not page.evaluate("tour.on"))
+    page.goto(URL + "?tour=1", wait_until="networkidle")
+    page.wait_for_function("tour.on && tour.step === 0", timeout=15000)
+    check(f"{tag}: ?tour=1 autostarts", page.is_visible("#tour"))
+
     # Focus visibility on a replay button via Tab
     page.goto(URL, wait_until="networkidle")
-    page.wait_for_selector("#vessel-list button")
+    page.wait_for_selector("body.ready #vessel-list button")
     page.focus("#replay-open")
     outline = page.evaluate("getComputedStyle(document.activeElement).outlineStyle")
     page.keyboard.press("Tab"); page.keyboard.press("Shift+Tab")

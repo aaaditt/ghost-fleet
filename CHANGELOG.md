@@ -3,6 +3,44 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.7.0] - 2026-10-01
+
+### Added
+
+- **Satellite globe.** The map moves from Leaflet to MapLibre GL 5.24 on a
+  globe projection, with Esri World Imagery and labels (a dark basemap is a
+  toggle). Vessels, events and the 24 radar corridors are GeoJSON layers;
+  event symbols are drawn once on a canvas so they match the legend.
+- **Radar lens.** Sentinel-1 images draped on the map at their true position
+  from each chip's UTM transform, with the matched target ringed (model
+  estimate), the AIS loitering position marked, an optical/radar opacity
+  slider and a blink. Deep link `#imo=<imo>&pass=<n>`.
+- **Radar time-lapse** through every pass matched to one ship, and a **radar
+  gallery** of all 472 passes for 133 ships, filterable to confident matches
+  or GFW agreement.
+- **Guided tour** (`?tour=1` or the masthead button): ten captioned steps for
+  live demos, ending on the team names. Space pauses, arrows step, Esc exits;
+  grabbing the map pauses it; reduced motion cuts instead of flying.
+- `dashboard/data/radar_passes.json` (195 KB) and 472 georeferenced pass
+  images (`dashboard/media/sar/passes/`, 11 MB), written by `ml/build.py`
+  from the cached chips with no new downloads. `sar.json` `our_match` gains
+  `pass`.
+- Two radar-pass tests (55 in total) and 78 new browser checks for the globe,
+  lens, gallery and tour (237 in total).
+
+### Changed
+
+- The map page is a night edition of the Admiralty chart (`map.css`): a
+  full-bleed globe with the rail and panels as floating glass. Other pages
+  keep the light theme.
+- README screenshots (two new: lens and gallery) and `docs/demo.gif`
+  re-recorded against the new map; the deck cover carries the team names.
+
+### Known gaps
+
+- The pitch video and `video/record_scenes.py` still show and drive the
+  v0.6 Leaflet map; the scene scripts need porting before re-recording.
+
 ## [0.6.0] - 2026-10-01
 
 ### Added

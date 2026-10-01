@@ -6,14 +6,14 @@
 A map-first monitor of the sanctioned shadow-fleet tankers, built for oil traders from public data.
 
 [![Live demo](https://img.shields.io/badge/live_demo-ghost--fleet.vercel.app-a3165f?style=flat-square)](https://ghost-fleet.vercel.app)
-![Version](https://img.shields.io/badge/version-0.6.0-1c2a35?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-53_passing-2e7d5b?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.0-1c2a35?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-55_passing-2e7d5b?style=flat-square)
 ![Data](https://img.shields.io/badge/data-OpenSanctions_%2B_Global_Fishing_Watch-5d707a?style=flat-square)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-1c2a35?style=flat-square)](LICENSE)
 
-<img src="docs/demo.gif" alt="Demo: searching the former name Longevity 7, opening WOLF's dossier with its seven identities and radar evidence, then playing the historical evidence replay" width="900">
+<img src="docs/demo.gif" alt="Demo: searching the former name Longevity 7, opening WOLF's dossier, flying into its Sentinel-1 radar image on the satellite globe, blinking radar against optical, then playing the historical evidence replay" width="900">
 
-**[Try it live](https://ghost-fleet.vercel.app)** · **[Watch the 4-minute pitch](https://ghost-fleet.vercel.app/watch.html)** · **[Open WOLF's dossier](https://ghost-fleet.vercel.app/#imo=9240885)** · **[See the models](https://ghost-fleet.vercel.app/models.html)**
+**[Try it live](https://ghost-fleet.vercel.app)** · **[Take the guided tour](https://ghost-fleet.vercel.app/?tour=1)** · **[Watch the 4-minute pitch](https://ghost-fleet.vercel.app/watch.html)** · **[Open WOLF's dossier](https://ghost-fleet.vercel.app/#imo=9240885)** · **[See the models](https://ghost-fleet.vercel.app/models.html)**
 
 </div>
 
@@ -78,8 +78,10 @@ its AIS placed it.
 
 ## Features
 
-- **Chart-style map.** Every located tanker at its latest observed position,
-  with high-risk vessels in the magenta that nautical charts use for hazards.
+- **Satellite globe.** Every located tanker at its latest observed position
+  on a 3D globe of Esri satellite imagery (MapLibre GL), with high-risk vessels
+  in the magenta that nautical charts use for hazards. A dark basemap is one
+  click away, and the 24 radar corridors are outlined.
 - **Trend headline.** One plain sentence over 12 months of bars, showing
   exactly which months are compared.
 - **Busiest ports.** The export routes appear straight out of the data.
@@ -93,6 +95,17 @@ its AIS placed it.
 - **Seen by satellite radar.** Global Fishing Watch's Sentinel-1 detections
   matched to each tanker, and our own detector's image of the tanker where
   AIS placed it, with the match probability.
+- **Radar lens.** The Sentinel-1 image itself, draped on the satellite map at
+  its true position (3.2 km across, 10 m pixels), with a ring on the target
+  our model matched and a dot on the AIS loitering position. Slide or blink
+  between optical and radar.
+- **Radar time-lapse.** Step or play through every radar pass matched to one
+  ship over the year (472 passes for 133 ships), each a separate overpass.
+- **Radar gallery.** Every pass across the fleet in one filmstrip, filterable
+  to confident matches or passes GFW agrees with. Pick one to fly to it.
+- **Guided tour.** A captioned autopilot for live demos (`?tour=1`): globe,
+  fleet, radar corridors, one ship's dossier, its radar image, the
+  time-lapse, the gallery and the replay. Space pauses, arrow keys step.
 - **Historical evidence replay.** Step or play month by month through the
   dated, positioned events in the snapshot. Each mark is one recorded event,
   never a route or an interpolated position. The counts are not a trend,
@@ -109,8 +122,10 @@ its AIS placed it.
 <p align="center">
   <img src="docs/screenshot-overview.png" alt="Overview: map, trend headline and figures" width="49%">
   <img src="docs/screenshot-dossier.png" alt="Dossier: WOLF's evidence matrix with status and points for each row" width="49%">
+  <img src="docs/screenshot-lens.png" alt="Radar lens: WOLF's Sentinel-1 image of 4 March 2026 draped on the satellite map, a magenta ring on the matched hull, and its seven radar passes" width="49%">
+  <img src="docs/screenshot-gallery.png" alt="Radar gallery: a filmstrip of every Sentinel-1 pass matched across the fleet" width="49%">
   <img src="docs/screenshot-radar.png" alt="Radar evidence: GFW radar detections and our detector's Sentinel-1 image of WOLF" width="49%">
-  <img src="docs/screenshot-replay.png" alt="Historical evidence replay for July 2026: port calls, loitering and radar detections" width="49%">
+  <img src="docs/screenshot-replay.png" alt="Historical evidence replay for July 2026 on the globe: port calls, loitering and radar detections" width="49%">
 </p>
 
 ## How it works
@@ -195,8 +210,8 @@ python -m ml.gfw_sar          # GFW radar detections for 24 corridors (one repor
 python -m ml.dataset          # Sentinel-1 chips, read remotely from Planetary Computer
 python -m ml.detector train; python -m ml.detector eval
 python -m ml.matching; python -m ml.sts queue; python -m ml.cargo
-python -m ml.build            # writes dashboard/data/sar.json and radar thumbnails
-python tests/browser_check.py # 157 browser checks against a local server
+python -m ml.build            # writes sar.json, radar_passes.json, thumbnails and georeferenced passes
+python tests/browser_check.py # 237 browser checks against a local server
 
 # The pitch video (needs ELEVENLABS_API_KEY, Playwright, ffmpeg)
 python video/make_voice.py      # narration per scene; cached, only changed scenes cost characters

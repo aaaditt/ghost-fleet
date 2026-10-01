@@ -82,8 +82,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 /* Map controls share one chart-label look: paper, hairline rule, ink text. */
 
 .replay-toggle,
-.key,
-.leaflet-bar a {
+.key {
     background: rgba(248, 250, 250, 0.95);
     border: 1px solid var(--rule);
     color: var(--ink);
@@ -111,11 +110,6 @@ button:disabled { opacity: 0.4; cursor: default; }
 }
 .replay-toggle:hover { border-color: var(--ink); }
 .replay-toggle[hidden] { display: none; }
-
-.leaflet-bar { border: 0 !important; box-shadow: none !important; }
-.leaflet-bar a { width: 32px !important; height: 32px !important; line-height: 30px !important; font-size: 18px !important; }
-.leaflet-bar a + a { border-top: 0; }
-.leaflet-bar a:hover { color: var(--magenta); background: var(--paper); }
 
 .key {
     position: absolute;
@@ -433,19 +427,6 @@ button:disabled { opacity: 0.4; cursor: default; }
     color: var(--sounding);
 }
 .disclaimer p { margin: 0 0 6px; }
-
-/* Map markers */
-
-.leaflet-container { font-family: var(--sans); }
-.leaflet-tooltip {
-    padding: 4px 8px;
-    border-radius: 2px;
-    border-color: var(--rule);
-    color: var(--ink);
-    font-size: 12px;
-    box-shadow: none;
-}
-.leaflet-tooltip b { font: italic 500 14px var(--serif); }
 
 .status-msg {
     margin: 0 0 18px;

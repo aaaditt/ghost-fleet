@@ -1,7 +1,7 @@
 """Capture the README screenshots from the live site (1440x900).
 
 Usage: python scripts/screenshots.py [--url https://ghost-fleet.vercel.app]
-Writes docs/screenshot-{overview,dossier,radar,replay}.png. Needs Playwright.
+Writes docs/screenshot-{overview,dossier,radar,lens,gallery,replay}.png. Needs Playwright.
 """
 
 import argparse
@@ -17,12 +17,12 @@ def main():
     ap.add_argument("--url", default="https://ghost-fleet.vercel.app")
     url = ap.parse_args().url.rstrip("/") + "/"
     with sync_playwright() as pw:
-        browser = pw.chromium.launch()
+        browser = pw.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
         page = browser.new_page(viewport={"width": 1440, "height": 900})
 
         page.goto(url, wait_until="networkidle")
-        page.wait_for_selector("#vessel-list button")
-        page.wait_for_timeout(2500)
+        page.wait_for_selector("body.ready #vessel-list button")
+        page.wait_for_timeout(3500)
         page.screenshot(path=str(DOCS / "screenshot-overview.png"))
 
         page.goto(url + "#imo=9240885", wait_until="networkidle")
@@ -40,13 +40,23 @@ def main():
         page.wait_for_timeout(800)
         page.screenshot(path=str(DOCS / "screenshot-radar.png"))
 
+        page.click("#d-matrix [data-radar-pass]")       # the radar image draped on the globe
+        page.wait_for_timeout(6000)
+        page.screenshot(path=str(DOCS / "screenshot-lens.png"))
+
+        page.click("#gallery-open")
+        page.evaluate("map.jumpTo({center: [58, 22], zoom: 3, pitch: 0, bearing: 0})")
+        page.wait_for_timeout(3500)
+        page.screenshot(path=str(DOCS / "screenshot-gallery.png"))
+
+        page.click("#gallery-close")
         page.click("#btn-back")
         page.click("#replay-open")
-        page.evaluate("setReplay(replay.index.months.indexOf('2026-07')); map.setView([33, 52], 3, {animate: false})")
+        page.evaluate("setReplay(replay.index.months.indexOf('2026-07')); map.jumpTo({center: [52, 33], zoom: 3})")
         page.wait_for_timeout(2500)
         page.screenshot(path=str(DOCS / "screenshot-replay.png"))
         browser.close()
-    print("docs/screenshot-{overview,dossier,radar,replay}.png")
+    print("docs/screenshot-{overview,dossier,radar,lens,gallery,replay}.png")
 
 
 if __name__ == "__main__":

@@ -7,16 +7,18 @@
     <meta name="description" content="A dated snapshot of sanctioned shadow-fleet tanker activity for oil traders, built from OpenSanctions and Global Fishing Watch data.">
 
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%275%27 fill=%27%23a3165f%27/%3E%3C/svg%3E">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="map.css">
 </head>
-<body>
+<body class="app">
     <header class="masthead">
         <h1 class="wordmark">Ghost Fleet</h1>
         <p class="snapshot" id="snapshot">Loading snapshot…</p>
+        <button type="button" class="tour-start" id="tour-start">Guided tour</button>
         <nav class="mast-nav" aria-label="Pages"><a href="models.html">Models</a><a href="watch.html">Watch the pitch</a></nav>
     </header>
 
@@ -24,16 +26,53 @@
         <section class="chart" aria-label="Map of vessel positions">
             <div class="chart-canvas">
                 <div id="map"></div>
-                <button class="replay-toggle" id="replay-open" type="button" aria-controls="replay" aria-expanded="false" hidden>
-                    Historical evidence replay
-                </button>
+                <div class="map-tools">
+                    <button class="replay-toggle" id="replay-open" type="button" aria-controls="replay" aria-expanded="false" hidden>
+                        Historical evidence replay
+                    </button>
+                    <button class="gallery-toggle" id="gallery-open" type="button" aria-controls="gallery" aria-expanded="false">
+                        Radar gallery
+                    </button>
+                    <div class="basemap" id="basemap" role="group" aria-label="Basemap">
+                        <button type="button" data-base="satellite" aria-pressed="true">Satellite</button>
+                        <button type="button" data-base="dark" aria-pressed="false">Dark</button>
+                    </div>
+                </div>
                 <div class="key" role="group" aria-label="Map key">
                     <span class="key-mode" id="key-mode">Latest positions</span>
                     <span class="key-fleet"><i class="dot dot-high"></i>Risk 70+</span>
                     <span class="key-fleet"><i class="dot dot-low"></i>Below 70</span>
                     <span class="key-events" id="key-events"></span>
+                    <span class="key-radar"><i class="box"></i>Radar corridor</span>
                 </div>
+
+                <section class="tour" id="tour" aria-label="Guided tour" aria-live="polite" hidden>
+                    <p class="tour-title" id="tour-title"></p>
+                    <p class="tour-text" id="tour-text"></p>
+                    <div class="tour-bar">
+                        <span class="tour-dots" id="tour-dots" aria-hidden="true"></span>
+                        <button type="button" id="tour-prev" aria-label="Previous step">&#8249;</button>
+                        <button type="button" id="tour-pause" aria-pressed="false">Pause</button>
+                        <button type="button" id="tour-next" aria-label="Next step">&#8250;</button>
+                        <button type="button" id="tour-exit">Exit tour</button>
+                    </div>
+                </section>
             </div>
+
+            <section class="lens" id="lens" aria-labelledby="lens-title" hidden></section>
+
+            <section class="gallery" id="gallery" aria-labelledby="gallery-title" hidden>
+                <div class="gallery-head">
+                    <h2 id="gallery-title">Radar gallery</h2>
+                    <p class="gallery-count" id="gallery-count"></p>
+                    <label><input type="checkbox" id="gallery-conf"> Confident matches only</label>
+                    <label><input type="checkbox" id="gallery-gfw"> GFW agrees</label>
+                    <button type="button" class="gallery-close" id="gallery-close">Close</button>
+                </div>
+                <ul class="gallery-list" id="gallery-list"></ul>
+                <p class="gallery-note">Every Sentinel-1 pass where our detector found a candidate near a ship's loitering position.
+                    Percentages are model estimates. Pick one to fly to it.</p>
+            </section>
 
             <section class="replay" id="replay" aria-labelledby="replay-title" hidden>
                 <div class="replay-head">
@@ -161,13 +200,15 @@
 
             <footer class="disclaimer">
                 <p>Estimates from public data. A listing or a score is not proof of wrongdoing, and nothing here is trading advice.</p>
-                <p>Sanctions: <a href="https://www.opensanctions.org/datasets/maritime/">OpenSanctions</a> (CC BY-NC 4.0). Vessel activity: <a href="https://globalfishingwatch.org/">Global Fishing Watch</a>. Basemap: Esri, GEBCO, NOAA.</p>
+                <p>Sanctions: <a href="https://www.opensanctions.org/datasets/maritime/">OpenSanctions</a> (CC BY-NC 4.0). Vessel activity: <a href="https://globalfishingwatch.org/">Global Fishing Watch</a>. Radar: Copernicus Sentinel-1 via Microsoft Planetary Computer. Imagery: Esri, Maxar, Earthstar Geographics.</p>
             </footer>
         </aside>
     </main>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
     <script src="evidence.js"></script>
     <script src="app.js"></script>
+    <script src="radar.js"></script>
+    <script src="tour.js"></script>
 </body>
 </html>

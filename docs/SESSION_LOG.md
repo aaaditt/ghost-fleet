@@ -470,3 +470,34 @@ scripts and narrated video for the new product.
 - Obtain xView3 labels for an independent detector test.
 - Widen radar coverage beyond 24 corridors.
 - Parts of the Russian Pacific coast are rarely imaged by Sentinel-1.
+
+## 2026-10-01 — v0.7.0: satellite globe, radar lens, tour
+
+**Asked:** a more immersive live demo: real satellite imagery, the Sentinel-1
+images shown on the map rather than single screenshots, and a better map.
+Team names on the deck cover.
+
+**Built:**
+- `ml/build.py` writes 472 georeferenced radar passes (corners from each
+  cached chip's UTM transform, target snapped to the brightest pixel) and
+  `radar_passes.json`; no new downloads.
+- Dashboard moved from Leaflet to MapLibre GL 5.24 on a globe with Esri
+  imagery; night theme in `map.css`; radar lens, time-lapse and gallery in
+  `radar.js`; guided tour in `tour.js`.
+- Found and fixed while testing: `map.setPadding()` jumps the camera and
+  cancelled flights, so padding now rides on each camera move; the tour
+  crashed scheduling before its first step; requests cut off by navigation
+  were logged as errors.
+- Deck cover (version 7) names Aadit Chandra & Abhishekh Verma.
+
+**Validation:**
+- `python -m pytest -q` → 55 passed.
+- `python tests/browser_check.py` → 237/237 on the runs after the last fix.
+  Earlier runs intermittently logged aborted fetches as console errors;
+  that was the navigation noise fixed above.
+- Every tour step, the lens, gallery and mobile layout were checked in
+  screenshots.
+
+**Remaining:**
+- Port the video scene scripts to MapLibre before re-recording the video.
+- xView3 labels (owner); radar beyond 24 corridors.

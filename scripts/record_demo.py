@@ -19,12 +19,12 @@ SIZE: ViewportSize = {"width": 1280, "height": 800}
 
 def record(url: str, video_dir: Path) -> Path:
     with sync_playwright() as pw:
-        browser = pw.chromium.launch()
+        browser = pw.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
         ctx = browser.new_context(viewport=SIZE, record_video_dir=str(video_dir), record_video_size=SIZE)
         page = ctx.new_page()
         page.goto(url + "?v=demo", wait_until="networkidle")
-        page.wait_for_selector("#vessel-list button")
-        page.wait_for_timeout(2500)                      # land on the map
+        page.wait_for_selector("body.ready #vessel-list button")
+        page.wait_for_timeout(3000)                      # land on the globe
         page.click("#vessel-search")
         page.keyboard.type("longevity", delay=120)       # search a former name
         page.wait_for_timeout(900)
@@ -38,6 +38,13 @@ def record(url: str, video_dir: Path) -> Path:
         rail.evaluate("el => el.scrollBy({top: el.querySelector('#d-matrix tr.row-radar').getBoundingClientRect().top"
                       " - el.getBoundingClientRect().top - 16, behavior: 'smooth'})")
         page.wait_for_timeout(3200)                      # radar evidence and WOLF's radar image
+        page.click("#d-matrix [data-radar-pass]")       # fly in: the radar image on the satellite map
+        page.wait_for_timeout(5500)
+        page.click("#lens-blink")                        # optical versus radar
+        page.wait_for_timeout(2600)
+        page.click("#lens-blink")
+        page.click("#lens-next")                         # the next pass of the same ship
+        page.wait_for_timeout(2400)
         page.click("#replay-open")                       # historical evidence replay
         page.wait_for_timeout(1500)
         page.click("#replay-play")
@@ -71,9 +78,9 @@ def main():
         raise SystemExit("ffmpeg is not on PATH")
     with tempfile.TemporaryDirectory() as tmp:
         video = record(args.url.rstrip("/") + "/", Path(tmp))
-        # The bathymetric basemap is photographic, so GIFs of it are heavy:
+        # The satellite basemap is photographic, so GIFs of it are heavy:
         # step down frame rate, width and palette until it fits.
-        tiers = ((12, 960, 256), (10, 880, 192), (10, 800, 128), (8, 800, 128), (8, 720, 96))
+        tiers = ((12, 960, 256), (10, 880, 192), (10, 800, 128), (8, 800, 128), (8, 720, 96), (6, 720, 96), (6, 640, 80), (5, 640, 64))
         for fps, width, colors in tiers:
             to_gif(video, fps, width, colors)
             size = OUT.stat().st_size

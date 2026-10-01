@@ -1,7 +1,7 @@
 # Project Handover
 
 - Updated: 2026-10-01
-- Version: 0.6.0
+- Version: 0.7.0
 - Shared branch: `main`
 - Licence: MIT (code). Data retains source-specific terms; OpenSanctions and
   Global Fishing Watch are non-commercial. Sentinel-1 is Copernicus data via
@@ -10,23 +10,31 @@
 ## Current state
 
 Ghost Fleet is a **map-first hidden-supply monitor for commodity and energy
-traders** (`docs/PRODUCT_BRIEF.md`). v0.6.0 adds satellite radar and ML,
+traders** (`docs/PRODUCT_BRIEF.md`). v0.6.0 added satellite radar and ML,
 built at the owner's explicit request of 2026-09-30, which is recorded as an
-amendment in the brief.
+amendment in the brief. v0.7.0 (owner's request of 2026-10-01) makes the
+demo immersive: a satellite globe, radar images draped on the map, per-ship
+radar time-lapse, a fleet radar gallery and a guided tour.
 
 - **Live:** https://ghost-fleet.vercel.app. Deployed and verified with
   `python tests/browser_check.py --url https://ghost-fleet.vercel.app/`.
   - Demo vessel: `#imo=9240885` (EAST 1 → WOLF, 7 identities, score 75,
-    8 radar detections).
+    8 radar detections, 7 radar passes). `#imo=9240885&pass=2` opens its
+    radar lens.
+  - Live demo: `/?tour=1` runs the guided tour.
   - Models page: `/models.html`. Pitch video: `/watch.html`, 4 min 8 s with
     13 chapters.
 - **Snapshot:** 300 most-listed shadow-fleet vessels, 30 Sep 2025 –
   27 Sep 2026. 276 have a position. Activity is down 10.1% (Jun–Aug vs
   Mar–May). Cargo state is UNKNOWN for all.
-- **Dashboard:** static vanilla JS and Leaflet.
+- **Dashboard:** static vanilla JS and MapLibre GL 5.24 (globe, Esri
+  World Imagery). `app.js` map/dossier/replay, `radar.js` lens, time-lapse
+  and gallery, `tour.js` guided tour, `map.css` the night theme over
+  `style.css`.
   - The evidence matrix has statuses Observed, Derived from AIS, Not
     observed, Unavailable / unknown, and Model estimate.
-  - Radar rows and thumbnails come from `data/sar.json`.
+  - Radar rows and thumbnails come from `data/sar.json`; draped radar
+    passes from `data/radar_passes.json` (472 passes, 133 ships).
   - The historical evidence replay includes radar detections.
   - The logic is DOM-free in `evidence.js`, shared with the tests.
 - **Radar + ML (`ml/`):**
@@ -42,18 +50,18 @@ amendment in the brief.
   | Independent test | `xview3` | Not run: labels need DIU registration | xView3 labels |
 
 - **Validation baseline:**
-  - `python -m pytest -q` → 53 passed.
-  - Browser check → 159/159 locally and on the live site, on desktop,
-    390 px mobile and reduced motion.
+  - `python -m pytest -q` → 55 passed.
+  - Browser check → 237/237 locally, on desktop, 390 px mobile and reduced
+    motion (Chromium with SwiftShader WebGL).
 
 ## Immediate next tasks
 
-1. Owner: add team names to the deck cover
-   (https://claude.ai/artifact/9SscVdcfFiNjFdTEaZLmeL, 12 slides) and
-   submit. If a form needs YouTube or Loom, upload
-   `dashboard/media/ghost-fleet-demo.mp4`.
-2. Owner: rotate the ElevenLabs API key that was once pasted into chat. It
-   is a Windows user environment variable and appears in no file.
+1. Owner: submit. The deck cover now names the team
+   (https://claude.ai/artifact/9SscVdcfFiNjFdTEaZLmeL, version 7). If a form
+   needs YouTube or Loom, upload `dashboard/media/ghost-fleet-demo.mp4`.
+2. Port `video/record_scenes.py` to the MapLibre API (`flyTo({center,
+   zoom})`, no `setView`/`flyToBounds`) before re-recording the pitch video,
+   which still shows the v0.6 map.
 3. Register with DIU for xView3-SAR labels, then run `python -m ml.xview3
    <labels.csv>` for an evaluation not built on GFW's own outputs.
 4. Widen radar beyond the 24 corridors, and screen all 892 listed vessels.
@@ -75,7 +83,8 @@ amendment in the brief.
 - Tests: `python -m pytest -q`. The frontend tests need Node.js.
   `tests/browser_check.py` needs Playwright and a local server
   (`cd dashboard; python -m http.server 8765`).
-- Media, all against the live site:
+- Media, against the live site by default (`--url http://localhost:8765`
+  for a local build):
   - `python scripts/screenshots.py`
   - `python scripts/record_demo.py`
   - `python video/make_voice.py` (needs `ELEVENLABS_API_KEY`; cached per
@@ -106,5 +115,8 @@ amendment in the brief.
   stopped twice. The recorder now streams frames to disk.
 - A listing, score, detection or match is not proof of wrongdoing or trading
   advice.
+- The basemap is Esri World Imagery under its attribution terms; heavy
+  public use may need an ArcGIS account. Radar passes are 11 MB of static
+  JPEGs, loaded only when viewed.
 - `dashboard/.env.local` holds a Vercel OIDC token. It is git-ignored and
   excluded from deployments.
