@@ -1,7 +1,7 @@
 # Project Handover
 
 - Updated: 2026-10-01
-- Version: 0.7.0
+- Version: 0.7.1
 - Shared branch: `main`
 - Licence: MIT (code). Data retains source-specific terms; OpenSanctions and
   Global Fishing Watch are non-commercial. Sentinel-1 is Copernicus data via
@@ -22,8 +22,8 @@ radar time-lapse, a fleet radar gallery and a guided tour.
     8 radar detections, 7 radar passes). `#imo=9240885&pass=2` opens its
     radar lens.
   - Live demo: `/?tour=1` runs the guided tour.
-  - Models page: `/models.html`. Pitch video: `/watch.html`, 4 min 8 s with
-    13 chapters.
+  - Models page: `/models.html`. Pitch video: `/watch.html`, 4 min 45 s with
+    14 chapters, recorded on the globe.
 - **Snapshot:** 300 most-listed shadow-fleet vessels, 30 Sep 2025 –
   27 Sep 2026. 276 have a position. Activity is down 10.1% (Jun–Aug vs
   Mar–May). Cargo state is UNKNOWN for all.
@@ -51,7 +51,7 @@ radar time-lapse, a fleet radar gallery and a guided tour.
 
 - **Validation baseline:**
   - `python -m pytest -q` → 55 passed.
-  - Browser check → 237/237 locally and on the live site, on desktop, 390 px mobile and reduced
+  - Browser check → 243/243 locally and on the live site, on desktop, 390 px mobile and reduced
     motion (Chromium with SwiftShader WebGL).
 
 ## Immediate next tasks
@@ -59,13 +59,10 @@ radar time-lapse, a fleet radar gallery and a guided tour.
 1. Owner: submit. The deck cover now names the team
    (https://claude.ai/artifact/9SscVdcfFiNjFdTEaZLmeL, version 7). If a form
    needs YouTube or Loom, upload `dashboard/media/ghost-fleet-demo.mp4`.
-2. Port `video/record_scenes.py` to the MapLibre API (`flyTo({center,
-   zoom})`, no `setView`/`flyToBounds`) before re-recording the pitch video,
-   which still shows the v0.6 map.
-3. Register with DIU for xView3-SAR labels, then run `python -m ml.xview3
+2. Register with DIU for xView3-SAR labels, then run `python -m ml.xview3
    <labels.csv>` for an evaluation not built on GFW's own outputs.
-4. Widen radar beyond the 24 corridors, and screen all 892 listed vessels.
-5. For cargo state, licensed AIS draught or high-resolution/polarimetric SAR
+3. Widen radar beyond the 24 corridors, and screen all 892 listed vessels.
+4. For cargo state, licensed AIS draught or high-resolution/polarimetric SAR
    with independent labels is needed. Free Sentinel-1 failed the
    pre-registered test.
 
@@ -90,8 +87,11 @@ radar time-lapse, a fleet radar gallery and a guided tour.
   - `python video/make_voice.py` (needs `ELEVENLABS_API_KEY`; cached per
     scene)
   - `python video/record_scenes.py`. It can resume with `--only`, and
-    mid-story runs open WOLF's dossier first.
-  - `python video/assemble.py --crf 25`, which keeps the MP4 under 50 MB.
+    mid-story runs open WOLF's dossier first. It uses the GPU (ANGLE/D3D11)
+    and warms the tile cache first; on a low-memory machine record in short
+    runs (`--only ports`, `--only honesty,fleet`).
+  - `python video/assemble.py --crf 26`, which keeps the MP4 under 50 MB
+    (CRF 25 gave 51.1 MB on the satellite imagery).
 - Deploy: `vercel deploy --prod --cwd dashboard`.
 
 ## Known risks

@@ -6,14 +6,14 @@
 A map-first monitor of the sanctioned shadow-fleet tankers, built for oil traders from public data.
 
 [![Live demo](https://img.shields.io/badge/live_demo-ghost--fleet.vercel.app-a3165f?style=flat-square)](https://ghost-fleet.vercel.app)
-![Version](https://img.shields.io/badge/version-0.7.0-1c2a35?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-1c2a35?style=flat-square)
 ![Tests](https://img.shields.io/badge/tests-55_passing-2e7d5b?style=flat-square)
 ![Data](https://img.shields.io/badge/data-OpenSanctions_%2B_Global_Fishing_Watch-5d707a?style=flat-square)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-1c2a35?style=flat-square)](LICENSE)
 
 <img src="docs/demo.gif" alt="Demo: searching the former name Longevity 7, opening WOLF's dossier, flying into its Sentinel-1 radar image on the satellite globe, blinking radar against optical, then playing the historical evidence replay" width="900">
 
-**[Try it live](https://ghost-fleet.vercel.app)** · **[Take the guided tour](https://ghost-fleet.vercel.app/?tour=1)** · **[Watch the 4-minute pitch](https://ghost-fleet.vercel.app/watch.html)** · **[Open WOLF's dossier](https://ghost-fleet.vercel.app/#imo=9240885)** · **[See the models](https://ghost-fleet.vercel.app/models.html)**
+**[Try it live](https://ghost-fleet.vercel.app)** · **[Take the guided tour](https://ghost-fleet.vercel.app/?tour=1)** · **[Watch the 5-minute pitch](https://ghost-fleet.vercel.app/watch.html)** · **[Open WOLF's dossier](https://ghost-fleet.vercel.app/#imo=9240885)** · **[See the models](https://ghost-fleet.vercel.app/models.html)**
 
 </div>
 
@@ -26,14 +26,15 @@ moving by changing names, flags and radio identities. Ghost Fleet answers the
 oil trader's question: **is that hidden supply rising or falling, and where is
 it moving?**
 
-## Watch the 4-minute pitch
+## Watch the 5-minute pitch
 
-<a href="https://ghost-fleet.vercel.app/watch.html"><img src="dashboard/media/poster.jpg" alt="Play the Ghost Fleet pitch video: WOLF's seven identities on the map" width="720"></a>
+<a href="https://ghost-fleet.vercel.app/watch.html"><img src="dashboard/media/poster.jpg" alt="Play the Ghost Fleet pitch video: WOLF's seven identities beside the satellite globe" width="720"></a>
 
-A narrated walkthrough of the live product: the trend, the routes, one ship's
-seven identities, the evidence matrix, satellite radar, the evidence replay
-and what the data can't tell us. It runs 4 min 8 s at 1080p,
-with English subtitles and 13 chapters. The narration is voiced with
+A narrated walkthrough of the live product on the satellite globe: the
+trend, the routes, one ship's seven identities, the evidence matrix, the
+Sentinel-1 radar image draped where it was taken, every radar pass, the
+evidence replay and what the data can't tell us. It runs 4 min 45 s at 1080p,
+with English subtitles and 14 chapters. The narration is voiced with
 ElevenLabs, and every on-screen number comes from the same snapshot. You can
 also [download the MP4](https://ghost-fleet.vercel.app/media/ghost-fleet-demo.mp4)
 or read the [subtitles](dashboard/media/ghost-fleet-demo.srt).
@@ -211,7 +212,7 @@ python -m ml.dataset          # Sentinel-1 chips, read remotely from Planetary C
 python -m ml.detector train; python -m ml.detector eval
 python -m ml.matching; python -m ml.sts queue; python -m ml.cargo
 python -m ml.build            # writes sar.json, radar_passes.json, thumbnails and georeferenced passes
-python tests/browser_check.py # 237 browser checks against a local server
+python tests/browser_check.py # 243 browser checks against a local server
 
 # The pitch video (needs ELEVENLABS_API_KEY, Playwright, ffmpeg)
 python video/make_voice.py      # narration per scene; cached, only changed scenes cost characters
@@ -255,7 +256,8 @@ sources' terms:
   its Sentinel-1 radar detections.
 - **Sentinel-1:** contains modified Copernicus Sentinel data, via Microsoft
   Planetary Computer.
-- **Basemap:** Esri, GEBCO, NOAA.
+- **Imagery:** Esri World Imagery (Esri, Maxar, Earthstar Geographics).
+- **Radar:** Copernicus Sentinel-1 via Microsoft Planetary Computer.
 
 A commercial version would use licensed AIS data (with draft readings, to
 tell loaded from empty) and a commercial sanctions-data licence.

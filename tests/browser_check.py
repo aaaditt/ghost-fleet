@@ -283,6 +283,11 @@ def run(pw, width, height, reduced, tag):
     check(f"{tag}: models page states the cargo no-go", "No-go" in body or "may be shown" in body)
     check(f"{tag}: models page names its reference", "not ground truth" in body)
     check(f"{tag}: no overflow (models)", not overflow(page))
+    check(f"{tag}: models page uses the night theme",
+          page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--space').trim()") == "#050c12")
+    page.goto(URL + "watch.html", wait_until="networkidle")
+    page.wait_for_selector("#chapters button")
+    check(f"{tag}: watch page lists the 14 chapters", page.locator("#chapters button").count() == 14)
 
     check(f"{tag}: no console errors", not errors, errors)
     browser.close()

@@ -53,4 +53,14 @@ out["radar"] = {
     "wolf": {"detections": wolf["radar"]["detections"], "first": wolf["radar"]["first"], "last": wolf["radar"]["last"],
              "our_match": {k: wolf["our_match"][k] for k in ("date", "time", "posterior", "offset_m", "gfw_agrees")}},
 }
+# Radar passes draped on the globe, from dashboard/data/radar_passes.json (built by ml/build.py)
+P = json.load(open("dashboard/data/radar_passes.json", encoding="utf-8"))["vessels"]
+wolf_passes = P.get("9240885", [])
+out["radar_passes"] = {
+    "passes": sum(map(len, P.values())),
+    "ships": len(P),
+    "confident": sum(p["confident"] for ps in P.values() for p in ps),
+    "wolf": {"passes": len(wolf_passes), "confident": sum(p["confident"] for p in wolf_passes),
+             "first": wolf_passes[0]["date"] if wolf_passes else None, "last": wolf_passes[-1]["date"] if wolf_passes else None},
+}
 print(json.dumps(out, indent=1, ensure_ascii=False))

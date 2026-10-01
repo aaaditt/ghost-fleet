@@ -29,10 +29,10 @@ VTT = OUT.with_suffix(".vtt")
 POSTER = MEDIA / "poster.jpg"
 XF = 0.8                    # crossfade between scenes, seconds
 CHAPTERS = {
-    "title": "Ghost Fleet", "problem": "The shadow fleet", "landing": "The map",
+    "title": "Ghost Fleet", "problem": "The shadow fleet", "landing": "The globe",
     "trend": "The trend", "ports": "Where they call", "search": "Search a former name",
     "identities": "One hull, seven identities", "score": "The evidence matrix",
-    "radar": "Seen by satellite radar", "replay": "Evidence replay",
+    "radar": "Seen by satellite radar", "passes": "Every radar pass", "replay": "Evidence replay",
     "honesty": "What we don't claim", "fleet": "The whole fleet", "close": "What's next",
 }
 
@@ -134,7 +134,7 @@ def main():
     ident = order.index("identities")
     at = starts[ident] + rs.lead("identities") + rs.cue("identities", "Seven identities") + 1.5
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{at:.2f}", "-i", str(OUT), "-frames:v", "1",
-                    "-vf", "scale=1280:-1,drawbox=x=(iw-150)/2:y=(ih-150)/2:w=150:h=150:color=0x1c2a35@0.82:t=fill,"
+                    "-vf", "scale=1280:-1,drawbox=x=(iw-150)/2:y=(ih-150)/2:w=150:h=150:color=0x050c12@0.8:t=fill,"
                            f"drawtext=fontfile='{PLAY_FONT}':text='▶':fontcolor=white:fontsize=84:x=(w-text_w)/2+6:y=(h-text_h)/2",
                     "-q:v", "3", str(POSTER)], check=True)
 

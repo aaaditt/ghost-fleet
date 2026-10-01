@@ -3,7 +3,8 @@
 **Live demo:** https://ghost-fleet.vercel.app
 **Repository:** https://github.com/aaaditt/ghost-fleet
 **Start here:** https://ghost-fleet.vercel.app/#imo=9240885
-**Pitch video (4 min):** https://ghost-fleet.vercel.app/watch.html
+**Guided tour (live demo):** https://ghost-fleet.vercel.app/?tour=1
+**Pitch video (4 min 45 s):** https://ghost-fleet.vercel.app/watch.html
 **Models and their results:** https://ghost-fleet.vercel.app/models.html
 
 > A ship can turn off its beacon, but it cannot stop leaving a trail.
@@ -27,9 +28,10 @@ where is it moving?**
 - **The trend.** The panel leads with a plain sentence. In this snapshot,
   sanctioned tanker activity fell 10% in the last three months (Jun–Aug vs
   Mar–May), shown over 12 months of bars.
-- **The map.** 276 shadow-fleet tankers sit at their latest observed
-  positions, clustered at the Baltic terminals, the Black Sea, Suez, the
-  Gulf, Singapore and the Russian Far East.
+- **The globe.** 276 shadow-fleet tankers sit at their latest observed
+  positions on a 3D globe of real satellite imagery, clustered at the Baltic
+  terminals, the Black Sea, Suez, the Gulf, Singapore and the Russian Far
+  East. The 24 corridors where we looked with radar are outlined.
 - **Where they call.** The busiest ports are Nakhodka, Suez, Port Said,
   Primorsk and Ust-Luga: the export routes you would expect.
 - **The dossier.** Selecting a vessel shows the evidence behind its score:
@@ -44,6 +46,15 @@ where is it moving?**
   detected 255 of the 300 tankers. Our own detector finds each tanker in the
   radar image taken while AIS placed it loitering, and the dossier shows that
   image.
+- **The radar lens.** One click flies the globe down to the Sentinel-1 image
+  itself, draped on the satellite map exactly where it was taken (3.2 km
+  across, 10 m pixels). A ring marks the hull our model matched and a dot the
+  AIS loitering position; a slider and a blink compare optical and radar.
+- **Every radar pass.** Play through all the passes matched to one ship over
+  the year (seven for WOLF), or browse all 472 passes for 133 ships in the
+  radar gallery and fly to any one. Every match is labelled a model estimate.
+- **Guided tour.** For a live demo, `?tour=1` runs a ten-step captioned
+  autopilot through the whole story; Space pauses and the arrow keys step.
 - **Historical evidence replay.** Step month by month through the year's
   port calls, loitering and radar sightings, exactly as recorded, with no
   routes drawn and no gaps filled.
@@ -96,15 +107,19 @@ where is it moving?**
      ballast, with voyage-context labels and a pass mark fixed in advance.
      On unseen tankers it scored AUC 0.47, a coin toss. It failed, and cargo
      stays unknown.
-5. **The dashboard.** A static page (Leaflet on an Esri bathymetric basemap)
-   reads the snapshot. It is styled after a nautical chart: magenta overprint
-   for hazards, italic serif for vessel names. It is deployed on Vercel.
+5. **The dashboard.** A static page reads the snapshot: MapLibre GL 5.24 on
+   a globe projection, with Esri World Imagery. It is a night edition of a
+   nautical chart: dark glass panels over the globe, magenta for hazards,
+   cyan for radar, italic serif for vessel names. Radar images are placed
+   from each chip's UTM transform, so they sit at their true position on the
+   map. It is deployed on Vercel.
 
 The code is Python (pandas, requests) with plain HTML, CSS and JavaScript. It
 has no build step, no backend and no API keys in the browser. The ML code is
-PyTorch, scikit-learn and rasterio. 53 offline tests cover the pipeline, the
-evidence logic and the radar file, and a 157-check browser test covers the
-site on desktop, mobile and reduced motion.
+PyTorch, scikit-learn and rasterio. 55 offline tests cover the pipeline, the
+evidence logic and the radar files, and a 243-check browser test covers the
+globe, radar lens, gallery, tour and the rest of the site on desktop, mobile
+and reduced motion.
 
 ## Challenges we ran into
 

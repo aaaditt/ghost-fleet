@@ -3,6 +3,26 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.7.1] - 2026-10-01
+
+### Changed
+
+- **Pitch video re-recorded on the globe** (4 min 45 s, 14 chapters,
+  45.6 MB, −16.6 LUFS). A new *Every radar pass* scene shows the time-lapse
+  and the radar gallery; the radar scene ends in the lens with a blink; the
+  landing descends onto the globe; the close points to the guided tour.
+  Narration re-voiced for four scenes. Cards, captions and cursor use the
+  night theme, and the title and close cards name the team.
+- `video/record_scenes.py` drives MapLibre (`vx.fly`), records with the GPU
+  through ANGLE/D3D11, and warms the tile cache at every camera target first.
+- Pitch deck (version 8) re-themed to the night palette, with the globe and
+  the radar lens as its two images and current test counts.
+- `models.html` and `watch.html` use the night theme; image credits name
+  Esri World Imagery and Sentinel-1.
+- `WRITEUP.md`, `DEMO_SCRIPT.md` and `PITCH.md` describe the globe, lens,
+  time-lapse, gallery and tour; `scripts/figures.py` prints the radar-pass
+  totals.
+
 ## [0.7.0] - 2026-10-01
 
 ### Added

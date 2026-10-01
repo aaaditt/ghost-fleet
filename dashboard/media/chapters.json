@@ -11,57 +11,62 @@
  },
  {
   "id": "landing",
-  "title": "The map",
+  "title": "The globe",
   "start": 31.4
  },
  {
   "id": "trend",
   "title": "The trend",
-  "start": 51.36
+  "start": 53.68
  },
  {
   "id": "ports",
   "title": "Where they call",
-  "start": 66.12
+  "start": 68.44
  },
  {
   "id": "search",
   "title": "Search a former name",
-  "start": 83.36
+  "start": 85.68
  },
  {
   "id": "identities",
   "title": "One hull, seven identities",
-  "start": 93.96
+  "start": 96.28
  },
  {
   "id": "score",
   "title": "The evidence matrix",
-  "start": 117.68
+  "start": 120.0
  },
  {
   "id": "radar",
   "title": "Seen by satellite radar",
-  "start": 141.08
+  "start": 143.4
+ },
+ {
+  "id": "passes",
+  "title": "Every radar pass",
+  "start": 187.52
  },
  {
   "id": "replay",
   "title": "Evidence replay",
-  "start": 176.24
+  "start": 209.32
  },
  {
   "id": "honesty",
   "title": "What we don't claim",
-  "start": 193.8
+  "start": 226.88
  },
  {
   "id": "fleet",
   "title": "The whole fleet",
-  "start": 216.56
+  "start": 249.64
  },
  {
   "id": "close",
   "title": "What's next",
-  "start": 230.92
+  "start": 264.0
  }
 ]

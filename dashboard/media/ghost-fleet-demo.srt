@@ -35,261 +35,309 @@ So every oil trader has the same question:
 is that hidden supply rising or falling, and where is it moving?
 
 10
-00:00:32,200 --> 00:00:34,970
-Ghost Fleet answers that on one screen.
+00:00:32,200 --> 00:00:35,010
+Ghost Fleet answers that on one screen,
 
 11
-00:00:35,000 --> 00:00:39,810
-We took the three hundred most-sanctioned shadow-fleet tankers from OpenSanctions,
+00:00:34,800 --> 00:00:37,650
+on a globe of real satellite imagery.
 
 12
-00:00:39,640 --> 00:00:43,730
-and traced a full year of their movements through Global Fishing Watch.
+00:00:37,480 --> 00:00:42,210
+We took the three hundred most-sanctioned shadow-fleet tankers from OpenSanctions,
 
 13
-00:00:43,560 --> 00:00:46,343
-Two hundred and seventy-six of them appear here,
+00:00:42,040 --> 00:00:46,130
+and traced a full year of their movements through Global Fishing Watch.
 
 14
-00:00:46,147 --> 00:00:48,530
-at their latest observed positions.
+00:00:45,960 --> 00:00:48,690
+Two hundred and seventy-six of them appear here,
 
 15
-00:00:48,360 --> 00:00:51,090
-Magenta marks the highest-risk vessels.
+00:00:48,520 --> 00:00:50,930
+at their latest observed positions.
 
 16
-00:00:52,160 --> 00:00:56,810
-The answer comes first, in plain words. Across these ships,
+00:00:50,867 --> 00:00:53,410
+Magenta marks the highest-risk vessels.
 
 17
-00:00:56,600 --> 00:01:00,890
-the number active each month fell ten percent over the last three months,
+00:00:54,480 --> 00:00:59,130
+The answer comes first, in plain words. Across these ships,
 
 18
-00:01:00,720 --> 00:01:02,250
-compared with the three before.
+00:00:58,920 --> 00:01:03,210
+the number active each month fell ten percent over the last three months,
 
 19
-00:01:02,480 --> 00:01:05,850
-The bars show exactly which months are being compared.
+00:01:03,040 --> 00:01:04,570
+compared with the three before.
 
 20
-00:01:06,920 --> 00:01:09,170
-Below that are the key figures,
+00:01:04,800 --> 00:01:08,170
+The bars show exactly which months are being compared.
 
 21
-00:01:09,040 --> 00:01:13,410
-and where these tankers actually call. Nakhodka, on the Pacific.
+00:01:09,240 --> 00:01:11,490
+Below that are the key figures,
 
 22
-00:01:13,560 --> 00:01:18,210
-Primorsk and Ust-Luga, on the Baltic. Suez and Port Said,
+00:01:11,360 --> 00:01:15,730
+and where these tankers actually call. Nakhodka, on the Pacific.
 
 23
-00:01:18,040 --> 00:01:21,250
-on the way to Asia. We didn't draw these routes in.
+00:01:15,880 --> 00:01:20,530
+Primorsk and Ust-Luga, on the Baltic. Suez and Port Said,
 
 24
-00:01:21,160 --> 00:01:23,090
-They came straight out of the data.
+00:01:20,360 --> 00:01:23,570
+on the way to Asia. We didn't draw these routes in.
 
 25
-00:01:24,160 --> 00:01:25,970
-Now, one ship.
+00:01:23,480 --> 00:01:25,410
+They came straight out of the data.
 
 26
-00:01:26,000 --> 00:01:29,770
-Suppose you remember a tanker called Longevity Seven.
+00:01:26,480 --> 00:01:28,290
+Now, one ship.
 
 27
-00:01:29,600 --> 00:01:31,050
-Search that old name,
+00:01:28,320 --> 00:01:32,090
+Suppose you remember a tanker called Longevity Seven.
 
 28
-00:01:30,880 --> 00:01:33,690
-and Ghost Fleet finds what it is called today.
+00:01:31,920 --> 00:01:33,370
+Search that old name,
 
 29
-00:01:34,760 --> 00:01:38,370
-It's the Wolf. Same hull, same IMO number.
+00:01:33,200 --> 00:01:36,010
+and Ghost Fleet finds what it is called today.
 
 30
-00:01:38,600 --> 00:01:41,610
-It began life as the Danish Torm Gertrud.
+00:01:37,080 --> 00:01:40,690
+It's the Wolf. Same hull, same IMO number.
 
 31
-00:01:41,560 --> 00:01:46,210
-It became East One in Hong Kong, then Longevity Seven in Palau,
+00:01:40,920 --> 00:01:43,930
+It began life as the Danish Torm Gertrud.
 
 32
-00:01:46,040 --> 00:01:48,770
-then the Wolf, under the flag of Malawi,
+00:01:43,880 --> 00:01:48,530
+It became East One in Hong Kong, then Longevity Seven in Palau,
 
 33
-00:01:48,600 --> 00:01:52,650
-a country with no coastline. In September it switched again,
+00:01:48,360 --> 00:01:51,090
+then the Wolf, under the flag of Malawi,
 
 34
-00:01:52,520 --> 00:01:57,410
-to Aruba. Seven identities. Seven flags. One ship.
+00:01:50,920 --> 00:01:54,970
+a country with no coastline. In September it switched again,
 
 35
-00:01:58,480 --> 00:02:02,410
-Its screening score of seventy-five is not a black box.
+00:01:54,840 --> 00:01:59,730
+to Aruba. Seven identities. Seven flags. One ship.
 
 36
-00:02:02,400 --> 00:02:05,530
-The evidence matrix lists every piece of evidence,
+00:02:00,800 --> 00:02:04,730
+Its screening score of seventy-five is not a black box.
 
 37
-00:02:05,360 --> 00:02:08,010
-where it came from, and what it adds.
+00:02:04,720 --> 00:02:07,850
+The evidence matrix lists every piece of evidence,
 
 38
-00:02:07,840 --> 00:02:10,330
-Forty points for its sanctions listings,
+00:02:07,680 --> 00:02:10,330
+where it came from, and what it adds.
 
 39
-00:02:10,160 --> 00:02:12,330
-thirty for its identity switches,
+00:02:10,160 --> 00:02:12,650
+Forty points for its sanctions listings,
 
 40
-00:02:12,200 --> 00:02:15,050
-and five for time spent loitering at sea.
+00:02:12,480 --> 00:02:14,650
+thirty for its identity switches,
 
 41
-00:02:14,880 --> 00:02:17,210
-The map shows where that happened.
+00:02:14,520 --> 00:02:17,370
+and five for time spent loitering at sea.
 
 42
-00:02:17,080 --> 00:02:20,810
-This summer it idled offshore for up to two weeks at a time.
+00:02:17,200 --> 00:02:19,530
+The map shows where that happened.
 
 43
-00:02:21,880 --> 00:02:26,170
-A ship can switch off its tracker. It cannot hide from radar.
+00:02:19,400 --> 00:02:23,130
+This summer it idled offshore for up to two weeks at a time.
 
 44
-00:02:26,200 --> 00:02:29,810
-Satellite radar sees the hull itself, day or night,
+00:02:24,200 --> 00:02:28,770
+A ship can switch off its tracker. It cannot hide from radar.
 
 45
-00:02:29,680 --> 00:02:30,890
-through cloud.
+00:02:28,600 --> 00:02:31,970
+Satellite radar sees the hull itself, day or night,
 
 46
-00:02:30,920 --> 00:02:36,370
-Global Fishing Watch's radar picked up two hundred and fifty-five of these three hundred tankers,
+00:02:31,840 --> 00:02:33,250
+through cloud.
 
 47
-00:02:36,200 --> 00:02:38,010
-eight times for the Wolf.
+00:02:33,080 --> 00:02:38,450
+Global Fishing Watch's radar picked up two hundred and fifty-five of these three hundred tankers,
 
 48
-00:02:38,040 --> 00:02:40,610
-We trained our own detector on those images.
+00:02:38,280 --> 00:02:40,370
+eight times for the Wolf.
 
 49
-00:02:40,600 --> 00:02:44,370
-On a hundred and forty-seven radar scenes it had never seen,
+00:02:40,200 --> 00:02:42,930
+We trained our own detector on those images.
 
 50
-00:02:44,200 --> 00:02:48,050
-it found ninety-seven percent of the ships Global Fishing Watch found,
+00:02:42,720 --> 00:02:46,370
+On a hundred and forty-seven radar scenes it had never seen,
 
 51
-00:02:47,880 --> 00:02:50,610
-with a third of the false alarms of the classic method.
+00:02:46,200 --> 00:02:50,130
+it found ninety-seven percent of the ships Global Fishing Watch found,
 
 52
-00:02:50,920 --> 00:02:53,970
-Here it is finding the Wolf in the Gulf of Oman,
+00:02:49,960 --> 00:02:53,250
+with a third of the false alarms of the classic method.
 
 53
-00:02:53,840 --> 00:02:55,970
-right where its tracking data placed it.
+00:02:53,080 --> 00:02:55,890
+Here it is finding the Wolf in the Gulf of Oman,
 
 54
-00:02:57,040 --> 00:02:58,970
-You can also go back in time.
+00:02:55,760 --> 00:02:57,970
+right where its tracking data placed it.
 
 55
-00:02:59,200 --> 00:03:02,970
-The evidence replay steps through the year, month by month:
+00:02:58,040 --> 00:03:00,610
+And this is the radar image itself,
 
 56
-00:03:02,840 --> 00:03:05,850
-port calls, loitering, and radar sightings,
+00:03:00,400 --> 00:03:03,610
+laid on the satellite map exactly where it was taken.
 
 57
-00:03:05,760 --> 00:03:09,210
-exactly as they were recorded. It never draws a route,
+00:03:03,640 --> 00:03:07,250
+Blink between them, and the bright echo is the steel hull.
 
 58
-00:03:09,000 --> 00:03:11,010
-and it never fills in the gaps.
+00:03:08,320 --> 00:03:10,130
+That was one pass.
 
 59
-00:03:10,960 --> 00:03:13,530
-What you see is what the data holds.
+00:03:10,160 --> 00:03:14,170
+Here is every radar pass of the same ship through the year:
 
 60
-00:03:14,600 --> 00:03:17,610
-We're strict about what the data cannot tell us.
+00:03:14,080 --> 00:03:18,170
+seven for the Wolf, each a separate satellite overpass.
 
 61
-00:03:17,640 --> 00:03:20,450
-Nobody publishes whether these tankers are loaded,
+00:03:18,120 --> 00:03:19,090
+Across the fleet,
 
 62
-00:03:20,280 --> 00:03:22,770
-so we tested whether radar could tell,
+00:03:18,880 --> 00:03:23,530
+there are four hundred and seventy-two passes for a hundred and thirty-three ships,
 
 63
-00:03:22,640 --> 00:03:25,570
-on two hundred tanker images. It couldn't.
+00:03:23,320 --> 00:03:25,850
+and you can open any of them on the map.
 
 64
-00:03:25,720 --> 00:03:29,810
-It was no better than a coin toss, so we say unknown.
+00:03:25,680 --> 00:03:29,050
+Every match is a model estimate, never proof.
 
 65
-00:03:29,880 --> 00:03:33,170
-Values are ranges, with their assumptions shown.
+00:03:30,120 --> 00:03:32,050
+You can also go back in time.
 
 66
-00:03:33,040 --> 00:03:36,290
-And every vessel links straight back to its sources.
+00:03:32,280 --> 00:03:36,050
+The evidence replay steps through the year, month by month:
 
 67
-00:03:37,360 --> 00:03:40,490
-Step back, and it isn't one ship.
+00:03:35,920 --> 00:03:38,930
+port calls, loitering, and radar sightings,
 
 68
-00:03:40,720 --> 00:03:44,570
-Two hundred and eighty-nine of these three hundred switched identity.
+00:03:38,840 --> 00:03:42,290
+exactly as they were recorded. It never draws a route,
 
 69
-00:03:44,560 --> 00:03:47,530
-Between them, they used eighty-one flags,
+00:03:42,080 --> 00:03:44,090
+and it never fills in the gaps.
 
 70
-00:03:47,320 --> 00:03:50,570
-and eleven fly the flag of a landlocked country today.
+00:03:44,040 --> 00:03:46,610
+What you see is what the data holds.
 
 71
-00:03:51,720 --> 00:03:52,610
-Next,
+00:03:47,680 --> 00:03:50,690
+We're strict about what the data cannot tell us.
 
 72
-00:03:52,400 --> 00:03:56,450
-we'll screen all eight hundred and ninety-two listed ships every day,
+00:03:50,720 --> 00:03:53,530
+Nobody publishes whether these tankers are loaded,
 
 73
-00:03:56,280 --> 00:04:00,050
-and add licensed draft data to turn this signal into barrels.
+00:03:53,360 --> 00:03:55,850
+so we tested whether radar could tell,
 
 74
-00:04:00,360 --> 00:04:03,970
+00:03:55,720 --> 00:03:58,650
+on two hundred tanker images. It couldn't.
+
+75
+00:03:58,800 --> 00:04:02,890
+It was no better than a coin toss, so we say unknown.
+
+76
+00:04:02,960 --> 00:04:06,250
+Values are ranges, with their assumptions shown.
+
+77
+00:04:06,120 --> 00:04:09,370
+And every vessel links straight back to its sources.
+
+78
+00:04:10,440 --> 00:04:13,570
+Step back, and it isn't one ship.
+
+79
+00:04:13,800 --> 00:04:17,650
+Two hundred and eighty-nine of these three hundred switched identity.
+
+80
+00:04:17,640 --> 00:04:20,610
+Between them, they used eighty-one flags,
+
+81
+00:04:20,400 --> 00:04:23,650
+and eleven fly the flag of a landlocked country today.
+
+82
+00:04:24,800 --> 00:04:25,610
+Next,
+
+83
+00:04:25,400 --> 00:04:29,450
+we'll screen all eight hundred and ninety-two listed ships every day,
+
+84
+00:04:29,240 --> 00:04:33,050
+and add licensed draft data to turn this signal into barrels.
+
+85
+00:04:33,040 --> 00:04:37,690
+Try the guided tour yourself, at ghost fleet dot vercel dot app.
+
+86
+00:04:37,560 --> 00:04:40,890
 Ghost Fleet. The hidden fleet, made visible.

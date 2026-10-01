@@ -3,7 +3,7 @@
     "name": "Eric",
     "voice_id": "cjVigY5qzO86Huf0OWal"
   },
-  "note": "One entry per scene. Numbers are written as words so the voice reads them naturally. Every figure comes from scripts/figures.py (snapshot 30 Sep 2025 - 27 Sep 2026; radar figures from dashboard/data/sar.json).",
+  "note": "One entry per scene. Numbers are written as words so the voice reads them naturally. Every figure comes from scripts/figures.py (snapshot 30 Sep 2025 - 27 Sep 2026; radar figures from dashboard/data/sar.json and radar_passes.json).",
   "scenes": [
     {
       "id": "title",
@@ -18,7 +18,7 @@
     {
       "id": "landing",
       "kind": "site",
-      "text": "Ghost Fleet answers that on one screen. We took the three hundred most-sanctioned shadow-fleet tankers from OpenSanctions, and traced a full year of their movements through Global Fishing Watch. Two hundred and seventy-six of them appear here, at their latest observed positions. Magenta marks the highest-risk vessels."
+      "text": "Ghost Fleet answers that on one screen, on a globe of real satellite imagery. We took the three hundred most-sanctioned shadow-fleet tankers from OpenSanctions, and traced a full year of their movements through Global Fishing Watch. Two hundred and seventy-six of them appear here, at their latest observed positions. Magenta marks the highest-risk vessels."
     },
     {
       "id": "trend",
@@ -48,7 +48,12 @@
     {
       "id": "radar",
       "kind": "site",
-      "text": "A ship can switch off its tracker. It cannot hide from radar. Satellite radar sees the hull itself, day or night, through cloud. Global Fishing Watch's radar picked up two hundred and fifty-five of these three hundred tankers, eight times for the Wolf. We trained our own detector on those images. On a hundred and forty-seven radar scenes it had never seen, it found ninety-seven percent of the ships Global Fishing Watch found, with a third of the false alarms of the classic method. Here it is finding the Wolf in the Gulf of Oman, right where its tracking data placed it."
+      "text": "A ship can switch off its tracker. It cannot hide from radar. Satellite radar sees the hull itself, day or night, through cloud. Global Fishing Watch's radar picked up two hundred and fifty-five of these three hundred tankers, eight times for the Wolf. We trained our own detector on those images. On a hundred and forty-seven radar scenes it had never seen, it found ninety-seven percent of the ships Global Fishing Watch found, with a third of the false alarms of the classic method. Here it is finding the Wolf in the Gulf of Oman, right where its tracking data placed it. And this is the radar image itself, laid on the satellite map exactly where it was taken. Blink between them, and the bright echo is the steel hull."
+    },
+    {
+      "id": "passes",
+      "kind": "site",
+      "text": "That was one pass. Here is every radar pass of the same ship through the year: seven for the Wolf, each a separate satellite overpass. Across the fleet, there are four hundred and seventy-two passes for a hundred and thirty-three ships, and you can open any of them on the map. Every match is a model estimate, never proof."
     },
     {
       "id": "replay",
@@ -68,7 +73,7 @@
     {
       "id": "close",
       "kind": "card",
-      "text": "Next, we'll screen all eight hundred and ninety-two listed ships every day, and add licensed draft data to turn this signal into barrels. Ghost Fleet. The hidden fleet, made visible."
+      "text": "Next, we'll screen all eight hundred and ninety-two listed ships every day, and add licensed draft data to turn this signal into barrels. Try the guided tour yourself, at ghost fleet dot vercel dot app. Ghost Fleet. The hidden fleet, made visible."
     }
   ]
 }

@@ -3,36 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost Fleet: the 4-minute pitch</title>
-    <meta name="description" content="A narrated four-minute pitch and demo of Ghost Fleet, a map-first monitor of sanctioned shadow-fleet tankers, with satellite radar evidence.">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%275%27 fill=%27%23a3165f%27/%3E%3C/svg%3E">
+    <title>Ghost Fleet: the 5-minute pitch</title>
+    <meta name="description" content="A narrated five-minute pitch and demo of Ghost Fleet, a map-first monitor of sanctioned shadow-fleet tankers, with satellite radar evidence.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%275%27 fill=%27%23ff4fa3%27/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --ink:#1c2a35; --sounding:#5d707a; --magenta:#a3165f; --water:#e9f0f1; --paper:#f8fafa; --rule:#c9d5d8; }
+        :root { --space:#050c12; --text:#e6edf0; --soft:#93a8b1; --magenta:#ff4fa3; --edge:rgba(255,255,255,.1); }
         * { box-sizing: border-box; }
-        html, body { margin: 0; background: var(--ink); color: #e8eff0; font: 16px/1.5 "Public Sans", system-ui, sans-serif; }
+        html, body { margin: 0; background: radial-gradient(1100px 700px at 70% 0%, #0d2230 0%, var(--space) 60%) fixed; color: var(--text); font: 16px/1.5 "Public Sans", system-ui, sans-serif; }
         a { color: inherit; text-underline-offset: 3px; }
-        a:hover { color: #f3b6d3; }
-        :focus-visible { outline: 2px solid #f3b6d3; outline-offset: 3px; }
+        a:hover { color: var(--magenta); }
+        :focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
         main { max-width: 1180px; margin: 0 auto; padding: 36px 24px 56px; }
         header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
         h1 { margin: 0; font: italic 500 34px/1.1 "Newsreader", Georgia, serif; }
-        header p { margin: 0; color: #a9bcc2; }
-        .player { margin-top: 24px; background: #000; aspect-ratio: 16 / 9; }
+        header p { margin: 0; color: var(--soft); }
+        .player { margin-top: 24px; background: #000; aspect-ratio: 16 / 9; border: 1px solid var(--edge); border-radius: 12px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
         video { display: block; width: 100%; height: 100%; }
         .below { display: grid; grid-template-columns: 1fr 320px; gap: 40px; margin-top: 28px; }
         .lede { margin: 0; font: italic 400 26px/1.3 "Newsreader", Georgia, serif; }
-        .meta { margin-top: 14px; color: #a9bcc2; font-size: 14px; max-width: 62ch; }
+        .meta { margin-top: 14px; color: var(--soft); font-size: 14px; max-width: 62ch; }
         .links { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 18px; font-weight: 600; }
-        h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: #a9bcc2; }
+        h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--soft); }
         ol { margin: 0; padding: 0; list-style: none; }
         ol button { display: grid; grid-template-columns: 52px 1fr; width: 100%; padding: 6px 4px; border: 0;
-                    border-bottom: 1px solid #33434f; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-        ol button:hover, ol button[aria-current="true"] { color: #f3b6d3; }
-        ol time { color: #a9bcc2; font-variant-numeric: tabular-nums; }
-        footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #33434f; color: #7f949b; font-size: 13px; }
+                    border-bottom: 1px solid var(--edge); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        ol button:hover, ol button[aria-current="true"] { color: var(--magenta); }
+        ol time { color: var(--soft); font-variant-numeric: tabular-nums; }
+        footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--edge); color: #6f848c; font-size: 13px; }
         @media (max-width: 820px) { .below { grid-template-columns: 1fr; } h1 { font-size: 28px; } }
     </style>
 </head>
@@ -40,7 +40,7 @@
 <main>
     <header>
         <h1>Ghost Fleet</h1>
-        <p>The 4-minute pitch and demo</p>
+        <p>The 5-minute pitch and demo · 4 min 45 s</p>
     </header>
 
     <div class="player">
@@ -68,7 +68,7 @@
         </nav>
     </div>
 
-    <footer>Narration voiced with ElevenLabs. Data: OpenSanctions (CC BY-NC 4.0), Global Fishing Watch. Basemap: Esri, GEBCO, NOAA. Code: MIT.</footer>
+    <footer>Narration voiced with ElevenLabs. Data: OpenSanctions (CC BY-NC 4.0), Global Fishing Watch. Imagery: Esri, Maxar, Earthstar Geographics. Radar: Copernicus Sentinel-1 via Microsoft Planetary Computer. Code: MIT.</footer>
 </main>
 
 <script>

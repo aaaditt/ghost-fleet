@@ -503,3 +503,24 @@ Team names on the deck cover.
 **Remaining:**
 - Port the video scene scripts to MapLibre before re-recording the video.
 - xView3 labels (owner); radar beyond 24 corridors.
+
+## 2026-10-01 — v0.7.1: video, deck and docs for the globe
+
+**Asked:** regenerate the README, pitch deck, video and everything else so it
+matches the dark globe.
+
+**Done:**
+- Video re-recorded on the globe: 14 scenes (new *Every radar pass*), four
+  narration clips re-voiced (landing, radar, passes, close), dark cards with
+  the team names. 4 min 45 s, 45.6 MB at CRF 26, −16.6 LUFS.
+- Recorder ported to MapLibre; GPU WebGL via ANGLE/D3D11 (about 28 fps at
+  1080p against SwiftShader's crawl); tile-cache warm-up after the first run
+  showed unloaded imagery in the ports and score flights.
+- The first full recording was stopped by the host for low memory (0.6 GB
+  free) after 12 of 14 scenes; the rest were recorded in short runs after the
+  owner freed memory.
+- Deck version 8 in the night theme; models and watch pages dark; write-up,
+  demo script, pitch notes and README updated.
+
+**Validation:** see the release commit (pytest, browser check locally and
+live).
