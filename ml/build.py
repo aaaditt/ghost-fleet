@@ -172,7 +172,7 @@ def build():
         },
         "coverage": {"corridors": [{"id": c["id"], "bbox": c["bbox"]} for c in cors],
                      "note": "Radar evidence covers only these 1-degree corridors, and only when Sentinel-1 imaged them."},
-        "models": {k: read_json(k) for k in ("detector", "matching_summary", "sts", "cargo_summary")},
+        "models": {k: read_json(k) for k in ("detector", "matching_summary", "sts", "cargo_summary", "xview3")},
         "vessels": vessels,
     }
     m = read_json("matching")

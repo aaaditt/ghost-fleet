@@ -6,7 +6,7 @@
 A map-first monitor of the sanctioned shadow-fleet tankers, built for oil traders from public data.
 
 [![Live demo](https://img.shields.io/badge/live_demo-ghost--fleet.vercel.app-a3165f?style=flat-square)](https://ghost-fleet.vercel.app)
-![Version](https://img.shields.io/badge/version-0.7.1-1c2a35?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.2-1c2a35?style=flat-square)
 ![Tests](https://img.shields.io/badge/tests-55_passing-2e7d5b?style=flat-square)
 ![Data](https://img.shields.io/badge/data-OpenSanctions_%2B_Global_Fishing_Watch-5d707a?style=flat-square)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-1c2a35?style=flat-square)](LICENSE)
@@ -165,6 +165,7 @@ flowchart LR
 | Model | Result | Measured against |
 |---|---|---|
 | CNN vessel detector | PR-AUC **0.991**, 97% recall at 98% precision, on 147 unseen radar scenes (CFAR baseline: 0.964) | GFW's radar detections: agreement, not ground truth |
+| Same detector, independent test | PR-AUC **0.974** (CFAR 0.958) on 20 xView3 scenes from 2020, other seas; 99% precision, 84% recall. Weak near shore: 71% recall within 5 km of land (CFAR 94%) | xView3-SAR labels (analysts and AIS), independent of GFW |
 | Tanker-to-radar matcher | Top target agrees with GFW's own match **87%** of the time (583 images) | GFW's AIS match, which our matcher never sees |
 | Possible side-by-side pairs | **5** confirmed of 90 reviewed candidates; the automatic rule alone is unreliable at 10 m pixels | Visual review by Claude, not an expert analyst |
 | Loaded or empty from radar | AUC **0.47** on unseen tankers, a coin toss. **Failed** the pass mark set in advance, so cargo stays unknown | Voyage-context labels (weak) |
@@ -180,7 +181,7 @@ rendered from `dashboard/data/sar.json`.
 | Identity switches, from tracking records | Whether a tanker is loaded: free data has no draft |
 | Value as an upper bound ($64–145 bn a year) | Barrels actually moved |
 | Long idle periods at sea | That a ship-to-ship transfer happened |
-| Radar sightings and model matches, with scores | Accuracy against ground truth: we report agreement with GFW |
+| Radar sightings and model matches, with scores | Perfect accuracy: one independent test (xView3) shows the detector misses ships near shore |
 | A dated one-year snapshot of 300 of 892 ships | A live feed |
 
 ## Run it yourself
@@ -212,7 +213,7 @@ python -m ml.dataset          # Sentinel-1 chips, read remotely from Planetary C
 python -m ml.detector train; python -m ml.detector eval
 python -m ml.matching; python -m ml.sts queue; python -m ml.cargo
 python -m ml.build            # writes sar.json, radar_passes.json, thumbnails and georeferenced passes
-python tests/browser_check.py # 243 browser checks against a local server
+python tests/browser_check.py # 246 browser checks against a local server
 
 # The pitch video (needs ELEVENLABS_API_KEY, Playwright, ffmpeg)
 python video/make_voice.py      # narration per scene; cached, only changed scenes cost characters

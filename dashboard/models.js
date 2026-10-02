@@ -73,6 +73,16 @@ function render(sar) {
             `Pass mark: lower 95% bound of AUC at least ${c.gate.auc_ci_low}, with at least ${c.gate.min_obs} observations from ${c.gate.min_vessels} vessels. ` +
             `An AUC of 0.5 is a coin toss.</p>`;
     }
+    const x = m.xview3;
+    if (x) {
+        const f3 = (y) => (y == null ? "—" : y.toFixed(3));
+        const row = (name, v) => [name, f3(v.pr_auc), (v.pr_auc_ci95 ? `${f3(v.pr_auc_ci95[0])}–${f3(v.pr_auc_ci95[1])}` : "—"), pct(v.at_val_threshold.precision), pct(v.at_val_threshold.recall)];
+        const dist = Object.entries(x.recall_by_distance || {}).map(([k, v]) => [k, String(v.vessels), pct(v.cnn), pct(v.cfar)]);
+        $("xview3").innerHTML = table(["xView3 scenes", "PR-AUC", "95% CI", "Precision", "Recall"], [row("Our CNN", x.cnn), row("CFAR baseline", x.cfar)]) +
+            table(["Recall by distance from shore", "Vessels", "Our CNN", "CFAR"], dist) +
+            `<p class="ref">${x.chips.toLocaleString("en-GB")} chips (${x.positive.toLocaleString("en-GB")} with a vessel) from ${x.scenes} xView3 validation ` +
+            `scenes, ${esc(x.years)}. Thresholds are the ones chosen on our own validation scenes, not tuned here. ${esc(x.reference)}.</p>`;
+    }
     $("card").removeAttribute("aria-busy");
 }
 

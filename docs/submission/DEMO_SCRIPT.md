@@ -149,7 +149,7 @@ Aadit Chandra & Abhishekh Verma*
 | Question | Answer |
 |---|---|
 | Is there real ML? | "Yes. A CNN vessel detector we trained on Sentinel-1 radar, a probabilistic matcher that finds a tanker in a radar image from its AIS position, and a cargo-state study. The Models page shows every result, including the one that failed." |
-| How accurate is the detector? | "On 147 held-out radar scenes it agrees with Global Fishing Watch's detections at PR-AUC 0.991, versus 0.964 for classic CFAR. That is agreement with GFW, not ground truth: GFW's labels have their own errors, and we show those too." |
+| How accurate is the detector? | "Against Global Fishing Watch, on 147 held-out scenes, PR-AUC 0.991 versus 0.964 for classic CFAR. On an independent test, xView3's analyst labels from 2020 in other seas, it scores 0.974 versus 0.958, with 99% precision and 84% recall. Its weakness is near the shore: 71% recall within 5 km of land. We publish that too." |
 | Is the radar image really where you put it? | "Yes. Each image keeps its map transform from Sentinel-1, so its four corners are placed exactly. The ring is our model's match; the white dot is where AIS put the ship." |
 | Can you tell if a tanker is loaded? | "No, and we tested it. Radar alone scored AUC 0.47 on unseen tankers, a coin toss, against a pass mark we fixed in advance. So cargo stays unknown." |
 | Can you see ship-to-ship transfers? | "We flag possible side-by-side pairs for review. With 10 m pixels (about 20 m true resolution), one tanker's bright bow and bridge often look like two ships, so only 5 reviewed pairs are shown, as possible activity, never as a transfer." |

@@ -1,7 +1,7 @@
 # Project Handover
 
 - Updated: 2026-10-01
-- Version: 0.7.1
+- Version: 0.7.2
 - Shared branch: `main`
 - Licence: MIT (code). Data retains source-specific terms; OpenSanctions and
   Global Fishing Watch are non-commercial. Sentinel-1 is Copernicus data via
@@ -47,11 +47,11 @@ radar time-lapse, a fleet radar gallery and a guided tour.
   | Matching | `matching` | 87% agreement; agreement rises with posterior | GFW's own AIS match |
   | Side-by-side | `sts` | 5 possible pairs from 90 reviewed; rule precision 3/30 and 2/60 | review by Claude, not an expert |
   | Cargo state | `cargo` | AUC 0.47 on unseen tankers; gate failed; cargo stays UNKNOWN | voyage-context weak labels |
-  | Independent test | `xview3` | Not run: labels need DIU registration | xView3 labels |
+  | Independent test | `xview3` | CNN PR-AUC 0.974 (CI 0.967–0.981) vs CFAR 0.958 on 20 xView3 scenes (1,502 balanced chips); 99% precision, 84% recall; near-shore recall 71% vs CFAR 94% | xView3-SAR labels (independent of GFW) |
 
 - **Validation baseline:**
   - `python -m pytest -q` → 55 passed.
-  - Browser check → 243/243 locally and on the live site, on desktop, 390 px mobile and reduced
+  - Browser check → 246/246 locally and on the live site, on desktop, 390 px mobile and reduced
     motion (Chromium with SwiftShader WebGL).
 
 ## Immediate next tasks
@@ -59,8 +59,10 @@ radar time-lapse, a fleet radar gallery and a guided tour.
 1. Owner: submit. The deck cover now names the team
    (https://claude.ai/artifact/9SscVdcfFiNjFdTEaZLmeL, version 7). If a form
    needs YouTube or Loom, upload `dashboard/media/ghost-fleet-demo.mp4`.
-2. Register with DIU for xView3-SAR labels, then run `python -m ml.xview3
-   <labels.csv>` for an evaluation not built on GFW's own outputs.
+2. Close the detector's near-shore gap (xView3 recall 71% within 5 km of
+   land): add near-shore vessels to training, e.g. from xView3's train split.
+   `python -m ml.xview3 <validation.csv>` re-runs the independent test; only
+   the labels CSV is needed (imagery streams from Planetary Computer).
 3. Widen radar beyond the 24 corridors, and screen all 892 listed vessels.
 4. For cargo state, licensed AIS draught or high-resolution/polarimetric SAR
    with independent labels is needed. Free Sentinel-1 failed the
@@ -98,7 +100,9 @@ radar time-lapse, a fleet radar gallery and a guided tour.
 
 - Detector and matcher metrics measure agreement with GFW, whose labels
   have their own errors: near-shore exclusions and possibly a different
-  same-day pass. They are not accuracy against ground truth.
+  same-day pass. They are not accuracy against ground truth. The
+  independent xView3 test (2020 scenes, other seas) gives PR-AUC 0.974 but
+  only 71% recall near shore.
 - The detector was trained on GFW detections from these corridors and dates.
   Performance elsewhere (other sea states, the near shore, small craft) is
   untested.

@@ -72,9 +72,12 @@
             ballast), with every vessel's images kept out of its own training fold. The pass mark was fixed before the test.</p>
         <div id="cargo"></div>
 
-        <h2>Not used</h2>
-        <p>xView3-SAR and SARFish labels require registration with DIU and were not used. <code>ml/xview3.py</code> runs an
-            independent evaluation if they are supplied.</p>
+        <h2>6. Independent test: xView3-SAR</h2>
+        <p>Sections 2 and 3 are measured against Global Fishing Watch, whose detections also trained the detector. xView3-SAR
+            (DIU) is an independent reference: vessels labelled by analysts and AIS on Sentinel-1 scenes from 2020, in other seas.
+            We ran the same detector, unchanged, on chips centred on xView3's high- and medium-confidence vessels and on open
+            water at least 2 km from any xView3 detection.</p>
+        <div id="xview3"><p class="ref">Not run: the xView3 labels need registration with DIU.</p></div>
 
         <footer class="disclaimer">
             <p>Contains modified Copernicus Sentinel data, via Microsoft Planetary Computer. Radar detections: Global Fishing Watch

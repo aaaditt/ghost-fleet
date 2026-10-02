@@ -282,6 +282,7 @@ def run(pw, width, height, reduced, tag):
     check(f"{tag}: models page tables", page.locator(".metrics").count() >= 3)
     check(f"{tag}: models page states the cargo no-go", "No-go" in body or "may be shown" in body)
     check(f"{tag}: models page names its reference", "not ground truth" in body)
+    check(f"{tag}: models page shows the independent xView3 test", page.locator("#xview3 table").count() == 2 and "xView3" in body)
     check(f"{tag}: no overflow (models)", not overflow(page))
     check(f"{tag}: models page uses the night theme",
           page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--space').trim()") == "#050c12")

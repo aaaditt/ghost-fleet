@@ -524,3 +524,23 @@ matches the dark globe.
 
 **Validation:** see the release commit (pytest, browser check locally and
 live).
+
+## 2026-10-02 — v0.7.2: independent xView3 test
+
+**Asked:** run the xView3 test. The owner registered with DIU and downloaded
+only `validation.csv` (3.7 MB; the 130 GB imagery is not needed).
+
+**Done:**
+- xView3 scene ids are anonymised: mapped through SARFish's
+  `xView3_SLC_GRD_correspondences.csv`; Planetary Computer RTC ids drop the
+  GRD product's last field. All 50 validation scenes resolve.
+- First run had 70% positives (land filter dropped open-water negatives),
+  which inflates PR-AUC; rerun with three times the candidates and classes
+  balanced per scene.
+- Result: CNN PR-AUC 0.974 (0.967–0.981) vs CFAR 0.958 (0.947–0.970); CNN
+  precision 99.4%, recall 84.4%; near-shore recall 71% vs CFAR 94%.
+- Models page section 6, README, write-up, demo-script answer, deck and
+  handover updated.
+
+**Remaining:** the detector's near-shore gap; the video's close card still
+lists independent radar testing as next (the deck is updated).

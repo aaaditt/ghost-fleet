@@ -99,6 +99,12 @@ where is it moving?**
      finds 97% of GFW's ships. A classical CFAR detector reaches 0.964, with
      about three times the false alarms. These are agreement with GFW, not
      ground truth.
+   - *Independent test.* On xView3-SAR, labels made by analysts and AIS
+     with no GFW input, on 20 scenes from 2020 in other seas, the same
+     detector (thresholds unchanged) reaches PR-AUC 0.974 against CFAR's
+     0.958, with 99% precision and 84% recall. It is weak near the shore:
+     71% recall within 5 km of land, against 94% for CFAR, which fits a
+     detector trained on offshore corridors.
    - *Matching.* Using the tanker's AIS loitering position, we score every
      detected target by confidence and distance, allowing for "not seen".
      Without looking at GFW's detections, our top target agrees with GFW's
@@ -117,7 +123,7 @@ where is it moving?**
 The code is Python (pandas, requests) with plain HTML, CSS and JavaScript. It
 has no build step, no backend and no API keys in the browser. The ML code is
 PyTorch, scikit-learn and rasterio. 55 offline tests cover the pipeline, the
-evidence logic and the radar files, and a 243-check browser test covers the
+evidence logic and the radar files, and a 246-check browser test covers the
 globe, radar lens, gallery, tour and the rest of the site on desktop, mobile
 and reduced motion.
 
@@ -173,7 +179,9 @@ a pre-registered test is how we found that out rather than guessing.
   than a live feed.
 - Radar evidence covers 24 corridors and only days Sentinel-1 imaged them.
   Parts of the Russian Pacific coast are rarely imaged. Detector and matcher
-  scores measure agreement with Global Fishing Watch, not ground truth. The
+  scores measure agreement with Global Fishing Watch; the one independent
+  test (xView3) confirms the detector offshore but finds it misses ships near
+  the coast. The
   side-by-side review was done by Claude (an AI model), not an expert
   analyst.
 - OpenSanctions (CC BY-NC 4.0) and Global Fishing Watch are licensed for
@@ -190,7 +198,6 @@ Global Fishing Watch non-commercial).
 1. Screen all 892 vessels and refresh the snapshot daily.
 2. Add draft data from a licensed AIS provider to estimate loaded vs. ballast
    state and turn activity into a barrels-based signal.
-3. Evaluate the detector on independent xView3-SAR labels (`ml/xview3.py`
-   is ready once the labels are licensed), and extend radar coverage beyond
-   the 24 corridors.
+3. Fix the detector's near-shore gap that the xView3 test exposed (train on
+   near-shore vessels), and extend radar coverage beyond the 24 corridors.
 4. Validate the trend against published export estimates with trader users.

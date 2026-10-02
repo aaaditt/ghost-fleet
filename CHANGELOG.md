@@ -3,6 +3,21 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.7.2] - 2026-10-02
+
+### Added
+
+- **Independent detector test on xView3-SAR.** On 20 validation scenes
+  (2020, other seas; 1,502 class-balanced chips), with thresholds unchanged,
+  our CNN reaches PR-AUC 0.974 (95% CI 0.967–0.981) against 0.958 for CFAR,
+  with 99% precision and 84% recall. Near shore (< 5 km) its recall is 71%
+  against CFAR's 94%; offshore 93% against 90%. Shown on the Models page
+  (section 6), in the README, write-up and deck.
+- `ml/xview3.py` maps xView3's anonymised scene ids to Sentinel-1 products
+  through SARFish's correspondence table, streams chips from Planetary
+  Computer (only the labels CSV is needed), balances classes per scene,
+  bootstraps confidence intervals and caches scores per scene.
+
 ## [0.7.1] - 2026-10-01
 
 ### Changed

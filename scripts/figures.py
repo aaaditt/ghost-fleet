@@ -63,4 +63,10 @@ out["radar_passes"] = {
     "wolf": {"passes": len(wolf_passes), "confident": sum(p["confident"] for p in wolf_passes),
              "first": wolf_passes[0]["date"] if wolf_passes else None, "last": wolf_passes[-1]["date"] if wolf_passes else None},
 }
+x3 = M.get("xview3")
+if x3:
+    out["xview3"] = {"scenes": x3["scenes"], "chips": x3["chips"],
+                     **{k: {"pr_auc": x3[k]["pr_auc"], "precision": x3[k]["at_val_threshold"]["precision"],
+                            "recall": x3[k]["at_val_threshold"]["recall"]} for k in ("cnn", "cfar")},
+                     "recall_by_distance": x3["recall_by_distance"]}
 print(json.dumps(out, indent=1, ensure_ascii=False))
