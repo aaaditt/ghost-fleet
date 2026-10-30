@@ -2,7 +2,7 @@
 Ghost Fleet — Hidden Supply Monitor pipeline
 ============================================
 Builds a dated, evidence-backed snapshot of sanctioned tanker activity for
-commodity and energy traders (see docs/PRODUCT_BRIEF.md).
+commodity and energy traders.
 
   1. OpenSanctions maritime CSV  -> sanctioned / sanctions-linked vessels (IMO, name)
   2. Global Fishing Watch v3 API -> AIS identity history, AIS gaps, loitering,

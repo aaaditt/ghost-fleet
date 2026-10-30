@@ -6,12 +6,12 @@
 A map-first monitor of the sanctioned shadow-fleet tankers, built for oil traders from public data.
 
 [![Live demo](https://img.shields.io/badge/live_demo-ghost--fleet.vercel.app-a3165f?style=flat-square)](https://ghost-fleet.vercel.app)
-![Version](https://img.shields.io/badge/version-0.7.2-1c2a35?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.3-1c2a35?style=flat-square)
 ![Tests](https://img.shields.io/badge/tests-55_passing-2e7d5b?style=flat-square)
 ![Data](https://img.shields.io/badge/data-OpenSanctions_%2B_Global_Fishing_Watch-5d707a?style=flat-square)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-1c2a35?style=flat-square)](LICENSE)
 
-<img src="docs/demo.gif" alt="Demo: searching the former name Longevity 7, opening WOLF's dossier, flying into its Sentinel-1 radar image on the satellite globe, blinking radar against optical, then playing the historical evidence replay" width="900">
+<img src="assets/demo.gif" alt="Demo: searching the former name Longevity 7, opening WOLF's dossier, flying into its Sentinel-1 radar image on the satellite globe, blinking radar against optical, then playing the historical evidence replay" width="900">
 
 **[Try it live](https://ghost-fleet.vercel.app)** · **[Take the guided tour](https://ghost-fleet.vercel.app/?tour=1)** · **[Watch the 5-minute pitch](https://ghost-fleet.vercel.app/watch.html)** · **[Open WOLF's dossier](https://ghost-fleet.vercel.app/#imo=9240885)** · **[See the models](https://ghost-fleet.vercel.app/models.html)**
 
@@ -121,12 +121,12 @@ its AIS placed it.
   and chapters, built from the live site by code in `video/`.
 
 <p align="center">
-  <img src="docs/screenshot-overview.png" alt="Overview: map, trend headline and figures" width="49%">
-  <img src="docs/screenshot-dossier.png" alt="Dossier: WOLF's evidence matrix with status and points for each row" width="49%">
-  <img src="docs/screenshot-lens.png" alt="Radar lens: WOLF's Sentinel-1 image of 4 March 2026 draped on the satellite map, a magenta ring on the matched hull, and its seven radar passes" width="49%">
-  <img src="docs/screenshot-gallery.png" alt="Radar gallery: a filmstrip of every Sentinel-1 pass matched across the fleet" width="49%">
-  <img src="docs/screenshot-radar.png" alt="Radar evidence: GFW radar detections and our detector's Sentinel-1 image of WOLF" width="49%">
-  <img src="docs/screenshot-replay.png" alt="Historical evidence replay for July 2026 on the globe: port calls, loitering and radar detections" width="49%">
+  <img src="assets/screenshot-overview.png" alt="Overview: map, trend headline and figures" width="49%">
+  <img src="assets/screenshot-dossier.png" alt="Dossier: WOLF's evidence matrix with status and points for each row" width="49%">
+  <img src="assets/screenshot-lens.png" alt="Radar lens: WOLF's Sentinel-1 image of 4 March 2026 draped on the satellite map, a magenta ring on the matched hull, and its seven radar passes" width="49%">
+  <img src="assets/screenshot-gallery.png" alt="Radar gallery: a filmstrip of every Sentinel-1 pass matched across the fleet" width="49%">
+  <img src="assets/screenshot-radar.png" alt="Radar evidence: GFW radar detections and our detector's Sentinel-1 image of WOLF" width="49%">
+  <img src="assets/screenshot-replay.png" alt="Historical evidence replay for July 2026 on the globe: port calls, loitering and radar detections" width="49%">
 </p>
 
 ## How it works
@@ -203,7 +203,7 @@ python scripts/figures.py                              # every figure quoted in 
 
 cd dashboard; python -m http.server 8765               # http://localhost:8765
 vercel deploy --prod --cwd dashboard                   # deploy (static, no build)
-python scripts/record_demo.py                          # re-record docs/demo.gif
+python scripts/record_demo.py                          # re-record assets/demo.gif
 python scripts/screenshots.py                          # re-capture the README screenshots
 
 # Radar + ML (needs requirements-ml.txt, PyTorch; GPU optional)
@@ -227,25 +227,19 @@ responses are cached in `.cache/gfw/` (git-ignored).
 `dashboard/data/vessels.demo.json` holds **fictional** vessels for offline
 use and is never deployed.
 
-## Project docs
+## More
 
-- [Product brief](docs/PRODUCT_BRIEF.md): who it is for and the one question
-  it answers.
-- [Concept overview](docs/CONCEPT_OVERVIEW.md): the problem from first
-  principles.
+- [Submission summary](SUBMISSION.txt): the idea, the results and every link
+  in one file.
+- [Pitch deck](https://claude.ai/artifact/9SscVdcfFiNjFdTEaZLmeL): twelve
+  slides, shared by link.
 - [Models page](https://ghost-fleet.vercel.app/models.html): every model
   result and its reference, live.
-- [SAR + ML feasibility](docs/SAR_ML_FEASIBILITY.md): what radar can support
-  now, what remains experimental, and the evidence behind that distinction.
-- [SAR + ML pilot plan](docs/SAR_ML_PILOT_PLAN.md): gated research stages for
-  dark-vessel, STS-candidate, and cargo-state experiments.
-- [Verified data sources](docs/DATASETS_AND_ML_RESEARCH.md): access, licensing,
-  labels, resolution, and ground-truth constraints.
-- Submission: [write-up](docs/submission/WRITEUP.md),
-  [demo script](docs/submission/DEMO_SCRIPT.md),
-  [pitch outline](docs/submission/PITCH.md).
-- [Handover](docs/HANDOVER.md), [changelog](CHANGELOG.md),
-  [session log](docs/SESSION_LOG.md), [collaboration rules](AGENTS.md).
+- [Changelog](CHANGELOG.md): what changed in each version.
+
+## Team
+
+Aadit Chandra and Abhishekh Verma.
 
 ## Data and licence
 

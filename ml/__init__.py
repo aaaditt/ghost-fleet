@@ -1,6 +1,6 @@
 """Ghost Fleet SAR + ML research code.
 
-Stages (see docs/superpowers/plans/2026-09-30-sar-ml-build-and-media.md):
+Stages:
   corridors   -> areas of interest derived from the snapshot's own events
   gfw_sar     -> Global Fishing Watch SAR detections (matched / unmatched)
   s1          -> Sentinel-1 RTC chips from Microsoft Planetary Computer

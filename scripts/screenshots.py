@@ -1,7 +1,7 @@
 """Capture the README screenshots from the live site (1440x900).
 
 Usage: python scripts/screenshots.py [--url https://ghost-fleet.vercel.app]
-Writes docs/screenshot-{overview,dossier,radar,lens,gallery,replay}.png. Needs Playwright.
+Writes assets/screenshot-{overview,dossier,radar,lens,gallery,replay}.png. Needs Playwright.
 """
 
 import argparse
@@ -9,7 +9,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-DOCS = Path(__file__).resolve().parents[1] / "docs"
+DOCS = Path(__file__).resolve().parents[1] / "assets"
 
 
 def main():
@@ -56,7 +56,7 @@ def main():
         page.wait_for_timeout(2500)
         page.screenshot(path=str(DOCS / "screenshot-replay.png"))
         browser.close()
-    print("docs/screenshot-{overview,dossier,radar,lens,gallery,replay}.png")
+    print("assets/screenshot-{overview,dossier,radar,lens,gallery,replay}.png")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Record the live Ghost Fleet demo path and convert it to docs/demo.gif.
+"""Record the live Ghost Fleet demo path and convert it to assets/demo.gif.
 
 Usage: python scripts/record_demo.py [--url https://ghost-fleet.vercel.app]
 Needs: Playwright for Python with Chromium, and ffmpeg on PATH.
@@ -13,7 +13,7 @@ from pathlib import Path
 from playwright.sync_api import ViewportSize, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs" / "demo.gif"
+OUT = ROOT / "assets" / "demo.gif"
 SIZE: ViewportSize = {"width": 1280, "height": 800}
 
 
@@ -84,7 +84,7 @@ def main():
         for fps, width, colors in tiers:
             to_gif(video, fps, width, colors)
             size = OUT.stat().st_size
-            print(f"docs/demo.gif  {fps} fps  {width}px  {colors} colours  {size / 1e6:.1f} MB")
+            print(f"assets/demo.gif  {fps} fps  {width}px  {colors} colours  {size / 1e6:.1f} MB")
             if size <= 8_000_000:
                 break
         else:

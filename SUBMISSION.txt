@@ -1,0 +1,222 @@
+================================================================================
+GHOST FLEET
+Hidden oil supply, seen from the sea.
+A map-first monitor of sanctioned shadow-fleet tankers, built for oil traders
+from public data.
+
+Team: Aadit Chandra and Abhishekh Verma
+================================================================================
+
+
+LINKS
+--------------------------------------------------------------------------------
+GitHub repository     https://github.com/aaaditt/ghost-fleet
+Google Drive          ..
+
+Live website          https://ghost-fleet.vercel.app
+Guided tour           https://ghost-fleet.vercel.app/?tour=1
+Pitch video (4:45)    https://ghost-fleet.vercel.app/watch.html
+Video download (MP4)  https://ghost-fleet.vercel.app/media/ghost-fleet-demo.mp4
+Pitch deck            https://claude.ai/artifact/9SscVdcfFiNjFdTEaZLmeL
+Models and results    https://ghost-fleet.vercel.app/models.html
+Example ship (WOLF)   https://ghost-fleet.vercel.app/#imo=9240885
+
+Short on time? Open the guided tour. It runs the whole story hands-free in ten
+captioned steps. Space pauses, the arrow keys step and Esc exits. The site uses
+WebGL, so please open it in a desktop browser and give the globe a few seconds
+to load.
+
+
+THE PROBLEM
+--------------------------------------------------------------------------------
+A ship can turn off its beacon, but it cannot stop leaving a trail.
+
+Since 2022, a "shadow fleet" of ageing tankers has kept sanctioned Russian oil
+moving. These ships change names, re-flag to registries that barely exist and
+switch their radio identity. Some are now flagged to landlocked countries.
+
+The oil still reaches the market, so oil traders need to know whether that
+hidden supply is growing or shrinking. The data to answer that is public, but
+it is scattered across sanctions lists and vessel-tracking records that do not
+talk to each other.
+
+
+WHAT GHOST FLEET DOES
+--------------------------------------------------------------------------------
+It answers one question for commodity and energy traders:
+
+    Is hidden, sanctions-linked oil supply rising or falling, and where is it
+    moving?
+
+- Trend headline: one plain sentence over 12 months of bars.
+- Satellite globe: 276 tankers at their latest observed positions, with
+  high-risk vessels in magenta and the 24 radar corridors outlined.
+- Busiest ports: the export routes appear straight out of the data.
+- Vessel dossier: every identity a ship has used, in order, with its recent
+  dated activity on the map.
+- Evidence matrix: each piece of evidence has its own row with its source, its
+  status (Observed, Derived from AIS, Not observed, Unavailable / unknown or
+  Model estimate) and the points it adds to the score.
+- Radar lens: the Sentinel-1 radar image itself, draped on the satellite map at
+  its true position. Slide or blink between optical and radar.
+- Radar time-lapse and gallery: 472 radar passes for 133 ships, each one a
+  separate satellite overpass you can fly to.
+- Historical evidence replay: step through the year's recorded events month by
+  month, with no routes drawn and no gaps filled.
+- Search by former name: type a name a ship used years ago and find what it is
+  called today.
+- Models page: what each model was measured against, including the one that
+  failed.
+
+
+WHAT THE SNAPSHOT SHOWS (30 Sep 2025 to 27 Sep 2026)
+--------------------------------------------------------------------------------
+Shadow-fleet tankers screened        300, all matched to tracking data
+With a recent position               276
+Active tankers, last 3 months        -10% (595 vs 662 vessel-months,
+  vs the 3 before                    Jun-Aug vs Mar-May)
+Switched identity at least once      289 (124 switched five or more times)
+Different flags used                 81
+Flagged today to a landlocked        11 (Malawi 4, Mali 3, Zimbabwe 3,
+  country                            Botswana 1)
+Now flagged to Russia                115
+Busiest ports of call                Nakhodka, Suez, Port Said, Primorsk,
+                                     Ust-Luga
+Seen by satellite radar              255 tankers, in 24 corridors
+
+
+ONE HULL, SEVEN IDENTITIES
+--------------------------------------------------------------------------------
+IMO 9240885 is named on 10 sanctions and watch lists.
+https://ghost-fleet.vercel.app/#imo=9240885
+
+    1. Torm Gertrud   Denmark               2012-14
+    2. Torm Gertrud   Marshall Islands      2014-16
+    3. Torm Gertrud   Singapore             2016-20
+    4. East 1         Hong Kong             2020-25
+    5. Longevity 7    Palau                 2025-26
+    6. Wolf           Malawi (landlocked)   Jun-Sep 2026
+    7. Wolf           Aruba                 since 7 Sep 2026
+
+Its screening score of 75 is fully explained: 40 for the listings, 30 for
+identity switches and 5 for loitering at sea. Satellite radar picked it up 8
+times, and our detector finds it in the 4 March 2026 image, 255 m from where
+its AIS placed it.
+
+
+HOW IT WORKS
+--------------------------------------------------------------------------------
+1. Who is in the fleet. The OpenSanctions maritime export has one row per
+   source list. Merging by IMO gives 892 shadow-fleet vessels, 772 of them
+   formally sanctioned. We rank by how many lists name each ship.
+
+2. What they did. Global Fishing Watch often stores each re-flag as a separate
+   record. We collect every identity carrying the IMO, then a year of dated,
+   positioned port calls, loitering and AIS gaps across all of them.
+
+3. What it means. An additive score, capacity ranges from gross tonnage and a
+   monthly activity series, written to a dated snapshot.
+
+4. What radar shows. We pulled 127,265 Global Fishing Watch radar detections
+   for 24 corridors and read Sentinel-1 image chips remotely from Microsoft
+   Planetary Computer. We then trained a small CNN detector and a matcher that
+   finds each tanker in the image from its AIS position.
+
+5. The dashboard. A static site (plain HTML, CSS and JavaScript, with MapLibre
+   GL) reads the snapshot and is deployed on Vercel. It has no backend and no
+   API keys in the browser.
+
+Built with: Python, pandas, PyTorch, scikit-learn, rasterio, MapLibre GL.
+
+
+THE MODELS, AND WHAT THEY WERE MEASURED AGAINST
+--------------------------------------------------------------------------------
+CNN vessel detector
+  PR-AUC 0.991 and 97% recall at 98% precision on 147 unseen radar scenes
+  (classical CFAR baseline: 0.964).
+  Measured against Global Fishing Watch's detections: agreement, not ground
+  truth.
+
+Same detector, independent test
+  PR-AUC 0.974 (CFAR 0.958) on 20 xView3-SAR scenes from 2020 in other seas,
+  with 99% precision and 84% recall. It is weak near shore: 71% recall within
+  5 km of land, against 94% for CFAR.
+  Measured against xView3-SAR labels, independent of Global Fishing Watch.
+
+Tanker-to-radar matcher
+  The top target agrees with Global Fishing Watch's own match 87% of the time
+  (583 images).
+  Measured against Global Fishing Watch's AIS match, which our matcher never
+  sees.
+
+Possible side-by-side pairs
+  5 confirmed of 90 reviewed candidates. The automatic rule alone is unreliable
+  at 10 m pixels.
+  Reviewed visually by Claude (an AI model), not an expert analyst.
+
+Loaded or empty from radar
+  AUC 0.47 on unseen tankers, a coin toss. It failed the pass mark set in
+  advance, so cargo state stays "unknown".
+  Measured against voyage-context labels, which are weak.
+
+
+WHAT WE SHOW, AND WHAT WE DON'T CLAIM
+--------------------------------------------------------------------------------
+We show which listed ships are active and where. We don't claim any ship broke
+the law.
+
+We show identity switches from tracking records. We don't claim to know whether
+a tanker is loaded, because free data has no draft readings.
+
+We show value as an upper bound ($64-145 bn a year). We don't claim to measure
+barrels actually moved.
+
+We show long idle periods at sea. We don't claim a ship-to-ship transfer
+happened.
+
+We show a dated one-year snapshot of 300 of 892 ships. It is not a live feed.
+
+A sanctions listing or a score is not proof of wrongdoing, and nothing here is
+trading advice.
+
+
+WHAT WE LEARNED
+--------------------------------------------------------------------------------
+The evasion signal is in identity history, not position. Positions tell you
+where a ship is. Identity history tells you what it is trying to hide. Radar
+adds physical presence, but freely available Sentinel-1 could not tell a loaded
+tanker from an empty one, and a test with a pass mark fixed in advance is how we
+found that out rather than guessing.
+
+
+WHAT'S NEXT
+--------------------------------------------------------------------------------
+1. Screen all 892 vessels and refresh the snapshot daily.
+2. Add draft data from a licensed AIS provider to estimate loaded vs ballast
+   state and turn activity into a barrels-based signal.
+3. Fix the detector's near-shore gap and extend radar beyond the 24 corridors.
+4. Validate the trend against published export estimates with trader users.
+
+
+WHERE TO LOOK IN THE CODE
+--------------------------------------------------------------------------------
+README and setup    https://github.com/aaaditt/ghost-fleet#readme
+Data pipeline       https://github.com/aaaditt/ghost-fleet/blob/main/dark_fleet_pipeline.py
+Radar and ML        https://github.com/aaaditt/ghost-fleet/tree/main/ml
+Dashboard           https://github.com/aaaditt/ghost-fleet/tree/main/dashboard
+Tests               https://github.com/aaaditt/ghost-fleet/tree/main/tests
+Pitch video code    https://github.com/aaaditt/ghost-fleet/tree/main/video
+
+The website needs no setup. To rebuild the data yourself, follow "Run it
+yourself" in the README. You will need Python 3.10+, a free Global Fishing Watch
+API token and the OpenSanctions maritime export.
+
+
+DATA AND LICENCE
+--------------------------------------------------------------------------------
+Code: MIT licence.
+OpenSanctions: CC BY-NC 4.0 (businesses need a data licence).
+Global Fishing Watch: non-commercial use, with attribution.
+Sentinel-1: contains modified Copernicus Sentinel data, via Microsoft Planetary
+Computer.
+Imagery: Esri World Imagery (Esri, Maxar, Earthstar Geographics).

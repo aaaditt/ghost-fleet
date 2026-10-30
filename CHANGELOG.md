@@ -3,6 +3,19 @@
 All notable changes to Ghost Fleet are recorded here. Versions follow semantic
 versioning.
 
+## [0.7.3] - 2026-10-30
+
+### Added
+
+- `SUBMISSION.txt`: the idea, results, limits and every link in one file.
+
+### Changed
+
+- Prepared the repository for submission. Internal planning and coordination
+  documents (`docs/`, `AGENTS.md`) are no longer tracked and are git-ignored.
+- README images moved from `docs/` to `assets/`, and the capture scripts now
+  write there.
+
 ## [0.7.2] - 2026-10-02
 
 ### Added
