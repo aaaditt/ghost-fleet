@@ -11,7 +11,7 @@ Team: Aadit Chandra and Abhishekh Verma
 LINKS
 --------------------------------------------------------------------------------
 GitHub repository     https://github.com/aaaditt/ghost-fleet
-Google Drive          ..
+Google Drive          https://drive.google.com/drive/folders/1QKUZn6_ge4FBn0-l9nP846TqK99sEfmf?usp=drive_link
 
 Live website          https://ghost-fleet.vercel.app
 Guided tour           https://ghost-fleet.vercel.app/?tour=1
